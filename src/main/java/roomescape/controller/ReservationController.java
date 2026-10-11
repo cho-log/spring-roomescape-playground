@@ -8,6 +8,8 @@ import org.springframework.ui.Model;
 import java.util.ArrayList;
 import java.util.List;
 
+import roomescape.dto.CreateReservationRequest;
+import roomescape.exception.ReservationNotFoundException;
 import roomescape.model.Reservation;
 
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import jakarta.validation.Valid;
 
 @Controller
 public class ReservationController {
@@ -43,13 +46,13 @@ public class ReservationController {
     @PostMapping("/reservations")
     @ResponseBody
     public ResponseEntity<Reservation> createReservation(
-            @RequestBody Map<String, String> request
+            @Valid @RequestBody CreateReservationRequest request
     ){
         Reservation reservation=new Reservation(
                 index.getAndIncrement(),
-                request.get("name"),
-                request.get("date"),
-                request.get("time")
+                request.name(),
+                request.date(),
+                request.time()
         );
 
         reservations.add(reservation);
@@ -61,10 +64,14 @@ public class ReservationController {
 
     @DeleteMapping("/reservations/{id}")
     public ResponseEntity<Void> deleteReservation(@PathVariable Long id){
-        reservations.removeIf(
+        boolean removed=reservations.removeIf(
                 reservation ->
                         reservation.getId().equals(id)
         );
+
+        if(!removed){
+            throw new ReservationNotFoundException("존재하지 않는 예약입니다. id="+id);
+        }
         return ResponseEntity.noContent().build();
     }
 
