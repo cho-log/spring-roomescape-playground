@@ -1,5 +1,12 @@
 package roomescape.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 
 public class Reservation {
     private Long id;
@@ -8,22 +15,5 @@ public class Reservation {
     private String time;
 
 
-    public Reservation(String name, String date, String time) {
-        this.name = name;
-        this.date = date;
-        this.time = time;
-    }
-
-    public Reservation(Long id, String name, String date, String time) {
-        this.id = id;
-        this.name = name;
-        this.date = date;
-        this.time = time;
-    }
-
-    public Long getId() { return id; }
-    public String getName() { return name; }
-    public String getDate() { return date; }
-    public String getTime() { return time; }
 
 }
