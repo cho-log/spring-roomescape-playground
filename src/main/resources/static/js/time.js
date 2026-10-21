@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function addEditableRow() {
 
-  if (isEditing) return;  // 이미 편집 중인 경우 추가하지 않음
+  if (isEditing) return;
 
   const tableBody = document.getElementById('time-table-body');
   const row = tableBody.insertRow();
@@ -66,7 +66,7 @@ function saveRow(event) {
       .then(data => updateRowWithTimeData(row, data))
       .catch(error => console.error('Error:', error));
 
-  isEditing = false;  // isEditing 값을 false로 설정
+  isEditing = false;
 }
 
 function updateRowWithTimeData(row, data) {
@@ -74,13 +74,11 @@ function updateRowWithTimeData(row, data) {
   cells[0].textContent = data.id;
   cells[1].textContent = data.time;
 
-  // 버튼 변경: 삭제 버튼으로 변경
   cells[2].innerHTML = '';
   cells[2].appendChild(createActionButton('삭제', 'btn-danger', deleteRow));
 
   isEditing = false;
 
-  // Remove the editable input fields and just show the saved data
   for (let i = 1; i <= 1; i++) {
     const inputElement = cells[i].querySelector('input');
     if (inputElement) {
