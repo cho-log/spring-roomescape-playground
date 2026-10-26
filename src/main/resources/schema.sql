@@ -5,3 +5,7 @@ create table reservation
     date varchar(255) not null,
     time varchar(255) not null
 );
+create table time(
+       id bigint primary key not null auto_increment,
+        time varchar(255) not null
+);
