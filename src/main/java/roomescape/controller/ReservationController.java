@@ -63,14 +63,4 @@ public class ReservationController {
         return ResponseEntity.noContent().build();
     }
 
-    @ExceptionHandler(value = NotFoundException.class)
-    public ResponseEntity<String> handleNotFound(NotFoundException e) {
-        return ResponseEntity.notFound().build();
-    }
-
-    @ExceptionHandler(value = IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
-    }
-
 }
