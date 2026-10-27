@@ -8,7 +8,9 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.web.bind.annotation.*;
 import roomescape.dto.ReservationRequest;
 import roomescape.dto.ReservationResponse;
+import roomescape.dto.TimeResponse;
 import roomescape.entity.Reservation;
+import roomescape.entity.ReservationTime;
 import roomescape.exception.NotFoundException;
 
 import java.sql.PreparedStatement;
@@ -27,31 +29,43 @@ public class ReservationController {
 
     @GetMapping("/reservations")
     public ResponseEntity<List<ReservationResponse>> getReservations() {
-        List<Reservation> found = jdbcTemplate.query("select id, name, date, time from reservation;", (rs, idx) ->
+        List<Reservation> found = jdbcTemplate.query("""
+            select r.id as reservation_id, r.name, r.date, t.id as time_id, t.time as time_value
+            from reservation as r
+            inner join time as t on r.time_id = t.id"""
+                , (rs, idx) ->
                 new Reservation(
-                        rs.getLong("id"),
+                        rs.getLong("reservation_id"),
                         rs.getString("name"),
                         LocalDate.parse(rs.getString("date")),
-                        LocalTime.parse(rs.getString("time"))
-                ));
+                        new ReservationTime(rs.getLong("time_id"), LocalTime.parse(rs.getString("time_value")))
+                )
+        );
+
         return ResponseEntity.ok(found.stream().map(ReservationResponse::new).toList());
     }
 
     @PostMapping("/reservations")
     public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationRequest request) {
-        Reservation validatedReservation = new Reservation(null, request.getName(), request.getDate(), request.getTime());
+        ReservationTime reservationTime = jdbcTemplate.queryForObject(
+                "select id, time from time where id = ?",
+                (rs, idx) -> new ReservationTime(rs.getLong("id"), LocalTime.parse(rs.getString("time"))),
+                request.getTime());
+
+        Reservation validatedReservation = new Reservation(null, request.getName(), request.getDate(), reservationTime);
+
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(c -> {
-            PreparedStatement ps = c.prepareStatement("insert into reservation (name, date, time) values (?, ?, ?);", new String[]{"id"});
+            PreparedStatement ps = c.prepareStatement("insert into reservation (name, date, time_id) values (?, ?, ?)", new String[]{"id"});
             ps.setString(1, validatedReservation.getName());
             ps.setString(2, validatedReservation.getDate().toString());
-            ps.setString(3, validatedReservation.getTime().toString());
+            ps.setLong(3, reservationTime.getId());
             return ps;
         }, keyHolder);
         Long newId = keyHolder.getKey().longValue();
 
-        ReservationResponse newReservationResponse = new ReservationResponse(newId, validatedReservation.getName(), validatedReservation.getDate(), validatedReservation.getTime());
-        return ResponseEntity.status(HttpStatus.CREATED).header("Location", "/reservations/" + newReservationResponse.getId()).body(newReservationResponse);
+        ReservationResponse response = new ReservationResponse(newId, validatedReservation.getName(), validatedReservation.getDate(), new TimeResponse(reservationTime));
+        return ResponseEntity.status(HttpStatus.CREATED).header("Location", "/reservations/" + newId).body(response);
     }
 
     @DeleteMapping("/reservations/{id}")
