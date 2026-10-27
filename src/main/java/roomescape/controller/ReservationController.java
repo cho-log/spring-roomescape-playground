@@ -47,11 +47,18 @@ public class ReservationController {
 
     @PostMapping("/reservations")
     public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationRequest request) {
-        ReservationTime reservationTime = jdbcTemplate.queryForObject(
+        if (request.getTime() == null) {
+            throw new IllegalArgumentException("시간을 선택해주세요.");
+        }
+        List<ReservationTime> times = jdbcTemplate.query(
                 "select id, time from time where id = ?",
                 (rs, idx) -> new ReservationTime(rs.getLong("id"), LocalTime.parse(rs.getString("time"))),
                 request.getTime());
 
+        if (times.isEmpty()) {
+            throw new NotFoundException("시간을 찾을 수 없습니다. id = " + request.getTime());
+        }
+        ReservationTime reservationTime = times.get(0);
         Reservation validatedReservation = new Reservation(null, request.getName(), request.getDate(), reservationTime);
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
