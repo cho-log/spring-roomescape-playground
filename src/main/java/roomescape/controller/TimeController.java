@@ -5,13 +5,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import roomescape.dto.TimeRequest;
 import roomescape.dto.TimeResponse;
 import roomescape.entity.ReservationTime;
+import roomescape.exception.NotFoundException;
 
 import java.sql.PreparedStatement;
 import java.time.LocalTime;
@@ -47,5 +45,14 @@ public class TimeController {
 
         TimeResponse newTime = new TimeResponse(newId, validateTime.getTime());
         return ResponseEntity.status(HttpStatus.CREATED).header("Location","/times/"+newId).body(newTime);
+    }
+
+    @DeleteMapping("/times/{id}")
+    public ResponseEntity<Void> deleteTime(@PathVariable long id) {
+        int deleted = jdbcTemplate.update("delete from time where id = ?", id);
+        if (deleted == 0) {
+            throw new NotFoundException("시간을 찾을 수 없습니다. id = " + id);
+        }
+        return ResponseEntity.noContent().build();
     }
 }
