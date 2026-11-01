@@ -4,6 +4,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import roomescape.domain.Reservation;
 import roomescape.domain.Time;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 
 import java.util.List;
 
@@ -40,5 +45,46 @@ public class ReservationRepository {
                     time
             );
         });
+    }
+    public Reservation save(Reservation reservation) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        jdbcTemplate.update(connection -> {
+            PreparedStatement statement = connection.prepareStatement(
+                    """
+                    INSERT INTO reservation (name, date, time_id)
+                    VALUES (?, ?, ?)
+                    """,
+                    Statement.RETURN_GENERATED_KEYS
+            );
+
+            statement.setString(1, reservation.getName());
+            statement.setString(2, reservation.getDate());
+            statement.setLong(3, reservation.getTime().getId());
+
+            return statement;
+        }, keyHolder);
+
+        Number generatedKey = keyHolder.getKey();
+
+        if (generatedKey == null) {
+            throw new IllegalStateException(
+                    "생성된 예약 ID를 가져오지 못했습니다."
+            );
+        }
+
+        return new Reservation(
+                generatedKey.longValue(),
+                reservation.getName(),
+                reservation.getDate(),
+                reservation.getTime()
+        );
+    }
+
+    public int deleteById(long id) {
+        return jdbcTemplate.update(
+                "DELETE FROM reservation WHERE id = ?",
+                id
+        );
     }
 }
