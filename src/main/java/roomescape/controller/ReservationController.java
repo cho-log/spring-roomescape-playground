@@ -6,10 +6,13 @@ import org.springframework.web.bind.annotation.*;
 import roomescape.domain.Reservation;
 import roomescape.exception.NotFoundReservationException;
 import roomescape.repository.ReservationRepository;
+import org.springframework.dao.EmptyResultDataAccessException;
+import roomescape.domain.Time;
+
+import java.util.Map;
 
 import java.net.URI;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
@@ -24,7 +27,7 @@ public class ReservationController {
 
     @GetMapping("/reservation")
     public String reservationPage() {
-        return "reservation";
+        return "new-reservation";
     }
 
     @GetMapping("/reservations")
@@ -35,47 +38,82 @@ public class ReservationController {
 
     @PostMapping("/reservations")
     public ResponseEntity<Reservation> addReservation(
-            @RequestBody Reservation request) {
-        if (request.getName() == null || request.getName().isBlank() ||
-                request.getName().length() > 255 ||
-                request.getDate() == null || request.getDate().isBlank() ||
-                request.getTime() == null || request.getTime().isBlank()) {
+            @RequestBody Map<String, String> request
+    ) {
+        String name = request.get("name");
+        String date = request.get("date");
+        String timeValue = request.get("time");
 
-            throw new IllegalArgumentException("필수 인자가 누락되었습니다.");
+        if (name == null || name.isBlank() || name.length() > 255
+                || date == null || date.isBlank()
+                || timeValue == null || timeValue.isBlank()) {
+            throw new IllegalArgumentException("예약 정보를 확인해주세요.");
         }
+
+        Long timeId;
+
         try {
-            LocalDate.parse(request.getDate());
-            LocalTime.parse(request.getTime());
-
-        } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException("날짜 또는 시간 형식이 올바르지 않습니다.");
+            LocalDate.parse(date);
+            timeId = Long.valueOf(timeValue);
+        } catch (DateTimeParseException | NumberFormatException e) {
+            throw new IllegalArgumentException(
+                    "날짜 또는 시간 ID 형식이 올바르지 않습니다."
+            );
         }
+
+        Time time;
+
+        try {
+            time = jdbcTemplate.queryForObject(
+                    "SELECT id, time FROM time WHERE id = ?",
+                    (rs, rowNum) -> new Time(
+                            rs.getLong("id"),
+                            rs.getString("time")
+                    ),
+                    timeId
+            );
+        } catch (EmptyResultDataAccessException e) {
+            throw new IllegalArgumentException("등록되지 않은 시간입니다.");
+        }
+
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
             PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)",
+                    """
+                    INSERT INTO reservation (name, date, time_id)
+                    VALUES (?, ?, ?)
+                    """,
                     Statement.RETURN_GENERATED_KEYS
             );
-            statement.setString(1, request.getName());
-            statement.setString(2, request.getDate());
-            statement.setString(3, request.getTime());
+
+            statement.setString(1, name);
+            statement.setString(2, date);
+            statement.setLong(3, timeId);
+
             return statement;
         }, keyHolder);
 
-        Long newId = keyHolder.getKey().longValue();
+        Number generatedKey = keyHolder.getKey();
 
-        Reservation newReservation = new Reservation(
+        if (generatedKey == null) {
+            throw new IllegalStateException(
+                    "생성된 예약 ID를 가져오지 못했습니다."
+            );
+        }
+
+        Long newId = generatedKey.longValue();
+
+        Reservation reservation = new Reservation(
                 newId,
-                request.getName(),
-                request.getDate(),
-                request.getTime()
+                name,
+                date,
+                time
         );
 
         return ResponseEntity
                 .created(URI.create("/reservations/" + newId))
-                .body(newReservation);
-
+                .body(reservation);
     }
 
     @DeleteMapping("/reservations/{id}")
