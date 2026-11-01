@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import roomescape.domain.Reservation;
 import roomescape.exception.NotFoundReservationException;
+import roomescape.repository.ReservationRepository;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -29,16 +30,7 @@ public class ReservationController {
     @GetMapping("/reservations")
     @ResponseBody
     public List<Reservation> getReservations() {
-        return jdbcTemplate.query(
-                "SELECT id, name, date, time FROM reservation",
-                (rs, rowNum) -> new Reservation(
-                        rs.getLong("id"),
-                        rs.getString("name"),
-                        rs.getString("date"),
-                        rs.getString("time")
-                )
-        );
-
+        return reservationRepository.findAll();
     }
 
     @PostMapping("/reservations")
@@ -98,9 +90,14 @@ public class ReservationController {
     }
 
     private final JdbcTemplate jdbcTemplate;
+    private final ReservationRepository reservationRepository;
 
-    public ReservationController(JdbcTemplate jdbcTemplate) {
+    public ReservationController(
+            JdbcTemplate jdbcTemplate,
+            ReservationRepository reservationRepository)
+    {
         this.jdbcTemplate = jdbcTemplate;
+        this.reservationRepository = reservationRepository;
     }
 
 }
