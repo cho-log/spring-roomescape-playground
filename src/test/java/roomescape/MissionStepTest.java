@@ -6,7 +6,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import static org.assertj.core.api.Assertions.tuple;
 import java.sql.Connection;
 import java.sql.SQLException;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -14,8 +13,8 @@ import static org.hamcrest.Matchers.is;
 import io.restassured.http.ContentType;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.List;
-import roomescape.domain.Reservation;
+import roomescape.controller.ReservationController;
+import java.lang.reflect.Field;
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -45,11 +44,12 @@ public class MissionStepTest {
     }
 
     @Test
-    void third() {
+    void reservationUsesRegisteredTime() {
+        Long timeId = saveTime("15:40");
         Map<String, String> params = new HashMap<>();
         params.put("name", "브라운");
         params.put("date", "2023-08-05");
-        params.put("time", "15:40");
+        params.put("time", timeId.toString());
 
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
@@ -61,7 +61,8 @@ public class MissionStepTest {
                 .body("id", is(1))
                 .body("name", is("브라운"))
                 .body("date", is("2023-08-05"))
-                .body("time", is("15:40"));
+                .body("time.id", is(timeId.intValue()))
+                .body("time.time", is("15:40"));
 
         RestAssured.given().log().all()
                 .when().get("/reservations")
@@ -70,7 +71,8 @@ public class MissionStepTest {
                 .body("size()", is(1))
                 .body("[0].name", is("브라운"))
                 .body("[0].date", is("2023-08-05"))
-                .body("[0].time", is("15:40"));
+                .body("[0].time.id", is(timeId.intValue()))
+                .body("[0].time.time", is("15:40"));
 
         RestAssured.given().log().all()
                 .when().delete("/reservations/1")
@@ -86,18 +88,19 @@ public class MissionStepTest {
 
     @Test
     void invalidReservationIsNotSaved() {
-        assertBadRequest("", "2023-08-05", "15:40");
-        // 필요한 인자가 없는 경우
-        assertBadRequest("브라운", "", "15:40");
+        String timeId = saveTime("15:40").toString();
+
+        assertBadRequest("", "2023-08-05", timeId);
+
+        assertBadRequest("a".repeat(256), "2023-08-05", timeId);
+
+        assertBadRequest("브라운", "", timeId);
+        assertBadRequest("브라운", "2023-02-30", timeId);
+
         assertBadRequest("브라운", "2023-08-05", "");
-        assertBadRequest("a".repeat(256), "2023-08-05", "15:40");
-
-
-        // 존재하지 않는 날짜/시간인 경우
-        assertBadRequest("브라운", "2023-02-30", "15:40");
         assertBadRequest("브라운", "2023-08-05", "abc");
+        assertBadRequest("브라운", "2023-08-05", "999");
 
-        // 삭제할 예약이 없는 경우
         RestAssured.given().log().all()
                 .when().delete("/reservations/1")
                 .then().log().all()
@@ -106,18 +109,21 @@ public class MissionStepTest {
 
     @Test
     void nameWith255CharactersIsPreserved() {
+        Long timeId = saveTime("15:40");
         String name = "a".repeat(255);
+
         Map<String, String> params = new HashMap<>();
         params.put("name", name);
         params.put("date", "2023-08-05");
-        params.put("time", "15:40");
+        params.put("time", timeId.toString());
 
-        RestAssured.given()
+        RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
-                .then()
+                .then().log().all()
                 .statusCode(201);
+
         RestAssured.given().log().all()
                 .when().get("/reservations")
                 .then().log().all()
@@ -128,6 +134,7 @@ public class MissionStepTest {
 
     private void assertBadRequest(String name, String date, String time) {
         Long countBefore = reservationCount();
+
         Map<String, String> params = new HashMap<>();
         params.put("name", name);
         params.put("date", date);
@@ -159,40 +166,41 @@ public class MissionStepTest {
 
     @Test
     void reservationsFromDatabase() {
+        Long firstTimeId = saveTime("15:40");
+        Long secondTimeId = saveTime("16:40");
         jdbcTemplate.update(
-                "INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)",
-                "브라운", "2023-08-05", "15:40"
+                "INSERT INTO reservation (name, date, time_id) VALUES (?, ?, ?)",
+                "브라운", "2023-08-05", firstTimeId
         );
         jdbcTemplate.update(
-                "INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)",
-                "블랙", "2023-08-06", "15:40"
+                "INSERT INTO reservation (name, date, time_id) VALUES (?, ?, ?)",
+                "블랙", "2023-08-06", secondTimeId
         );
 
-        List<Reservation> reservations = RestAssured.given()
+        RestAssured.given()
                 .when().get("/reservations")
                 .then().statusCode(200)
-                .extract().jsonPath().getList(".", Reservation.class);
-
-        assertThat(reservations)
-                .extracting(
-                        Reservation::getId,
-                        Reservation::getName,
-                        Reservation::getDate,
-                        Reservation::getTime
-                )
-                .containsExactlyInAnyOrder(
-                        tuple(1L, "브라운", "2023-08-05", "15:40"),
-                        tuple(2L, "블랙", "2023-08-06", "15:40")
-                );
+                .body("size()", is(2))
+                .body("find { it.id == 1 }.name", is("브라운"))
+                .body("find { it.id == 1 }.date", is("2023-08-05"))
+                .body("find { it.id == 1 }.time.id", is(firstTimeId.intValue()))
+                .body("find { it.id == 1 }.time.time", is("15:40"))
+                .body("find { it.id == 2 }.name", is("블랙"))
+                .body("find { it.id == 2 }.date", is("2023-08-06"))
+                .body("find { it.id == 2 }.time.id", is(secondTimeId.intValue()))
+                .body("find { it.id == 2 }.time.time", is("16:40"));
     }
 
     @Test
     void reservationInDatabase() {
-        jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES(?, ?, ?)", "기존 예약", "2023-08-04", "09:00" );
+        Long existingTimeId = saveTime("09:00");
+        Long newTimeId = saveTime("10:00");
+        jdbcTemplate.update("INSERT INTO reservation (name, date, time_id) VALUES(?, ?, ?)",
+                "기존 예약", "2023-08-04", existingTimeId);
         Map<String, String> params = new HashMap<>();
         params.put("name", "브라운");
         params.put("date", "2023-08-05");
-        params.put("time", "10:00");
+        params.put("time", newTimeId.toString());
 
         String location = RestAssured.given()
                 .contentType(ContentType.JSON)
@@ -200,6 +208,8 @@ public class MissionStepTest {
                 .when().post("/reservations")
                 .then()
                 .statusCode(201)
+                .body("time.id", is(newTimeId.intValue()))
+                .body("time.time", is("10:00"))
                 .extract()
                 .header("Location");
 
@@ -217,6 +227,9 @@ public class MissionStepTest {
                 String.class,
                 createdId);
         assertThat(createdName).isEqualTo("브라운");
+        Long createdTimeId = jdbcTemplate.queryForObject(
+                "SELECT time_id FROM reservation WHERE id = ?", Long.class, createdId);
+        assertThat(createdTimeId).isEqualTo(newTimeId);
 
 
         RestAssured.given().when().delete(location).then().statusCode(204);
@@ -231,19 +244,108 @@ public class MissionStepTest {
                 "SELECT name FROM reservation",
                 String.class);
         assertThat(remainingName).isEqualTo("기존 예약");
-    }
-    private Long reservationCount() {
-        return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM reservation", Long.class);
+        assertThat(jdbcTemplate.queryForObject("SELECT time_id FROM reservation", Long.class))
+                .isEqualTo(existingTimeId);
     }
 
     @Test
-    void deleteMissingReservationKeepsExisting() {
+    void timeCanBeCreatedListedAndDeleted() {
+        Map<String, String> params = new HashMap<>();
+        params.put("time", "10:00");
+
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().post("/times")
+                .then().log().all()
+                .statusCode(201)
+                .header("Location", "/times/1")
+                .body("id", is(1))
+                .body("time", is("10:00"));
+
+        RestAssured.given().log().all()
+                .when().get("/times")
+                .then().log().all()
+                .statusCode(200)
+                .body("size()", is(1))
+                .body("[0].id", is(1))
+                .body("[0].time", is("10:00"));
+
+        RestAssured.given().log().all()
+                .when().delete("/times/1")
+                .then().log().all()
+                .statusCode(204);
+        RestAssured.given()
+                .when().get("/times")
+                .then().statusCode(200)
+                .body("size()", is(0));
+    }
+
+    @Test
+    void reservationWithTimeStringIsRejected() {
+        Long countBefore = reservationCount();
+        Map<String, String> reservation = new HashMap<>();
+        reservation.put("name", "브라운");
+        reservation.put("date", "2023-08-05");
+        reservation.put("time", "10:00");
+
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(reservation)
+                .when().post("/reservations")
+                .then().log().all()
+                .statusCode(400);
+        assertThat(reservationCount()).isEqualTo(countBefore);
+    }
+
+    @Autowired
+    private ReservationController reservationController;
+
+    @Test
+    void reservationControllerDoesNotDependOnJdbcTemplate() {
+        boolean isJdbcTemplateInjected = false;
+
+        for (Field field : reservationController.getClass().getDeclaredFields()) {
+            if (field.getType().equals(JdbcTemplate.class)) {
+                isJdbcTemplateInjected = true;
+                break;
+            }
+        }
+
+        assertThat(isJdbcTemplateInjected).isFalse();
+    }
+    private Long saveTime(String value) {
         jdbcTemplate.update(
-                "INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)",
-                "브라운", "2023-08-05", "15:40"
+                "INSERT INTO time (time) VALUES (?)",
+                value
         );
+
+        return jdbcTemplate.queryForObject(
+                "SELECT id FROM time WHERE time = ?",
+                Long.class,
+                value
+        );
+    }
+
+    private Long reservationCount() {
+        return jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM reservation",
+                Long.class
+        );
+    }
+    @Test
+    void deleteMissingReservationKeepsExisting() {
+        Long timeId = saveTime("15:40");
+
+        jdbcTemplate.update(
+                "INSERT INTO reservation (name, date, time_id) VALUES (?, ?, ?)",
+                "브라운", "2023-08-05", timeId
+        );
+
         Long reservationId = jdbcTemplate.queryForObject(
-                "SELECT id FROM reservation WHERE name = ?", Long.class, "브라운"
+                "SELECT id FROM reservation WHERE name = ?",
+                Long.class,
+                "브라운"
         );
 
         RestAssured.given().log().all()
@@ -259,8 +361,8 @@ public class MissionStepTest {
                 .body("[0].id", is(reservationId.intValue()))
                 .body("[0].name", is("브라운"))
                 .body("[0].date", is("2023-08-05"))
-                .body("[0].time", is("15:40"));
+                .body("[0].time.id", is(timeId.intValue()))
+                .body("[0].time.time", is("15:40"));
     }
-
 }
 
