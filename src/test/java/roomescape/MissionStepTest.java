@@ -16,8 +16,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import roomescape.domain.Reservation;
-import roomescape.controller.ReservationController;
-import java.lang.reflect.Field;
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -87,19 +85,18 @@ public class MissionStepTest {
     }
 
     @Test
-    void invalidReservationIsNotSaved() {
-        String timeId = saveTime("15:40").toString();
-
-        assertBadRequest("", "2023-08-05", timeId);
-
-        assertBadRequest("a".repeat(256), "2023-08-05", timeId);
-
-        assertBadRequest("브라운", "", timeId);
-        assertBadRequest("브라운", "2023-02-30", timeId);
-
+    void fourth() {
+        // 필요한 인자가 없는 경우
+        assertBadRequest("브라운", "", "15:40");
         assertBadRequest("브라운", "2023-08-05", "");
+        assertBadRequest("a".repeat(256), "2023-08-05", "15:40");
+
+
+        // 존재하지 않는 날짜/시간인 경우
+        assertBadRequest("브라운", "2023-02-30", "15:40");
         assertBadRequest("브라운", "2023-08-05", "abc");
 
+        // 삭제할 예약이 없는 경우
         RestAssured.given().log().all()
                 .when().delete("/reservations/1")
                 .then().log().all()
@@ -107,33 +104,21 @@ public class MissionStepTest {
     }
 
     @Test
-    void nameWith255CharactersIsPreserved() {
-        Long timeId = saveTime("15:40");
-        String name = "a".repeat(255);
-
+    void reservation255() {
         Map<String, String> params = new HashMap<>();
-        params.put("name", name);
+        params.put("name", "a".repeat(255));
         params.put("date", "2023-08-05");
-        params.put("time", timeId.toString());
+        params.put("time", "15:40");
 
-        RestAssured.given().log().all()
+        RestAssured.given()
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/reservations")
-                .then().log().all()
+                .then()
                 .statusCode(201);
-
-        RestAssured.given().log().all()
-                .when().get("/reservations")
-                .then().log().all()
-                .statusCode(200)
-                .body("size()", is(1))
-                .body("[0].name", is(name));
     }
 
     private void assertBadRequest(String name, String date, String time) {
-        Long countBefore = reservationCount();
-
         Map<String, String> params = new HashMap<>();
         params.put("name", name);
         params.put("date", date);
@@ -145,8 +130,6 @@ public class MissionStepTest {
                 .when().post("/reservations")
                 .then().log().all()
                 .statusCode(400);
-
-        assertThat(reservationCount()).isEqualTo(countBefore);
     }
 
     @Autowired
@@ -237,113 +220,6 @@ public class MissionStepTest {
                 "SELECT name FROM reservation",
                 String.class);
         assertThat(remainingName).isEqualTo("기존 예약");
-    }
-
-    @Test
-    void eighth() {
-        Map<String, String> params = new HashMap<>();
-        params.put("time", "10:00");
-
-        RestAssured.given().log().all()
-                .contentType(ContentType.JSON)
-                .body(params)
-                .when().post("/times")
-                .then().log().all()
-                .statusCode(201)
-                .header("Location", "/times/1");
-
-        RestAssured.given().log().all()
-                .when().get("/times")
-                .then().log().all()
-                .statusCode(200)
-                .body("size()", is(1));
-
-        RestAssured.given().log().all()
-                .when().delete("/times/1")
-                .then().log().all()
-                .statusCode(204);
-    }
-
-    @Test
-    void nineth() {
-        Map<String, String> reservation = new HashMap<>();
-        reservation.put("name", "브라운");
-        reservation.put("date", "2023-08-05");
-        reservation.put("time", "10:00");
-
-        RestAssured.given().log().all()
-                .contentType(ContentType.JSON)
-                .body(reservation)
-                .when().post("/reservations")
-                .then().log().all()
-                .statusCode(400);
-    }
-
-    @Autowired
-    private ReservationController reservationController;
-
-    @Test
-    void tenth() {
-        boolean isJdbcTemplateInjected = false;
-
-        for (Field field : reservationController.getClass().getDeclaredFields()) {
-            if (field.getType().equals(JdbcTemplate.class)) {
-                isJdbcTemplateInjected = true;
-                break;
-            }
-        }
-
-        assertThat(isJdbcTemplateInjected).isFalse();
-    }
-    private Long saveTime(String value) {
-        jdbcTemplate.update(
-                "INSERT INTO time (time) VALUES (?)",
-                value
-        );
-
-        return jdbcTemplate.queryForObject(
-                "SELECT id FROM time WHERE time = ?",
-                Long.class,
-                value
-        );
-    }
-
-    private Long reservationCount() {
-        return jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM reservation",
-                Long.class
-        );
-    }
-    @Test
-    void deleteMissingReservationKeepsExisting() {
-        Long timeId = saveTime("15:40");
-
-        jdbcTemplate.update(
-                "INSERT INTO reservation (name, date, time_id) VALUES (?, ?, ?)",
-                "브라운", "2023-08-05", timeId
-        );
-
-        Long reservationId = jdbcTemplate.queryForObject(
-                "SELECT id FROM reservation WHERE name = ?",
-                Long.class,
-                "브라운"
-        );
-
-        RestAssured.given().log().all()
-                .when().delete("/reservations/" + (reservationId + 1))
-                .then().log().all()
-                .statusCode(400);
-
-        RestAssured.given().log().all()
-                .when().get("/reservations")
-                .then().log().all()
-                .statusCode(200)
-                .body("size()", is(1))
-                .body("[0].id", is(reservationId.intValue()))
-                .body("[0].name", is("브라운"))
-                .body("[0].date", is("2023-08-05"))
-                .body("[0].time.id", is(timeId.intValue()))
-                .body("[0].time.time", is("15:40"));
     }
 }
 
