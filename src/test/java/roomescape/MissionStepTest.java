@@ -85,7 +85,8 @@ public class MissionStepTest {
     }
 
     @Test
-    void fourth() {
+    void invalidReservationIsNotSaved() {
+        assertBadRequest("", "2023-08-05", "15:40");
         // 필요한 인자가 없는 경우
         assertBadRequest("브라운", "", "15:40");
         assertBadRequest("브라운", "2023-08-05", "");
@@ -104,9 +105,10 @@ public class MissionStepTest {
     }
 
     @Test
-    void reservation255() {
+    void nameWith255CharactersIsPreserved() {
+        String name = "a".repeat(255);
         Map<String, String> params = new HashMap<>();
-        params.put("name", "a".repeat(255));
+        params.put("name", name);
         params.put("date", "2023-08-05");
         params.put("time", "15:40");
 
@@ -116,9 +118,16 @@ public class MissionStepTest {
                 .when().post("/reservations")
                 .then()
                 .statusCode(201);
+        RestAssured.given().log().all()
+                .when().get("/reservations")
+                .then().log().all()
+                .statusCode(200)
+                .body("size()", is(1))
+                .body("[0].name", is(name));
     }
 
     private void assertBadRequest(String name, String date, String time) {
+        Long countBefore = reservationCount();
         Map<String, String> params = new HashMap<>();
         params.put("name", name);
         params.put("date", date);
@@ -130,6 +139,8 @@ public class MissionStepTest {
                 .when().post("/reservations")
                 .then().log().all()
                 .statusCode(400);
+
+        assertThat(reservationCount()).isEqualTo(countBefore);
     }
 
     @Autowired
@@ -221,5 +232,35 @@ public class MissionStepTest {
                 String.class);
         assertThat(remainingName).isEqualTo("기존 예약");
     }
+    private Long reservationCount() {
+        return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM reservation", Long.class);
+    }
+
+    @Test
+    void deleteMissingReservationKeepsExisting() {
+        jdbcTemplate.update(
+                "INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)",
+                "브라운", "2023-08-05", "15:40"
+        );
+        Long reservationId = jdbcTemplate.queryForObject(
+                "SELECT id FROM reservation WHERE name = ?", Long.class, "브라운"
+        );
+
+        RestAssured.given().log().all()
+                .when().delete("/reservations/" + (reservationId + 1))
+                .then().log().all()
+                .statusCode(400);
+
+        RestAssured.given().log().all()
+                .when().get("/reservations")
+                .then().log().all()
+                .statusCode(200)
+                .body("size()", is(1))
+                .body("[0].id", is(reservationId.intValue()))
+                .body("[0].name", is("브라운"))
+                .body("[0].date", is("2023-08-05"))
+                .body("[0].time", is("15:40"));
+    }
+
 }
 

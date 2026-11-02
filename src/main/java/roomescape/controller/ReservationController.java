@@ -20,6 +20,7 @@ import org.springframework.jdbc.support.KeyHolder;
 
 @Controller
 public class ReservationController {
+    private static final int MAX_NAME_LENGTH = 255;
 
     @GetMapping("/reservation")
     public String reservationPage() {
@@ -44,20 +45,8 @@ public class ReservationController {
     @PostMapping("/reservations")
     public ResponseEntity<Reservation> addReservation(
             @RequestBody Reservation request) {
-        if (request.getName() == null || request.getName().isBlank() ||
-                request.getName().length() > 255 ||
-                request.getDate() == null || request.getDate().isBlank() ||
-                request.getTime() == null || request.getTime().isBlank()) {
+        validateReservation(request);
 
-            throw new IllegalArgumentException("필수 인자가 누락되었습니다.");
-        }
-        try {
-            LocalDate.parse(request.getDate());
-            LocalTime.parse(request.getTime());
-
-        } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException("날짜 또는 시간 형식이 올바르지 않습니다.");
-        }
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
@@ -84,6 +73,29 @@ public class ReservationController {
                 .created(URI.create("/reservations/" + newId))
                 .body(newReservation);
 
+    }
+
+    private void validateReservation(Reservation request) {
+        if (request.getName() == null || request.getName().isBlank()) {
+            throw new IllegalArgumentException("예약자 이름을 입력해주세요.");
+        }
+        if (request.getName().length() > MAX_NAME_LENGTH) {
+            throw new IllegalArgumentException(
+                    "예약자 이름은 " + MAX_NAME_LENGTH + "자 이하여야 합니다."
+            );
+        }
+        if (request.getDate() == null || request.getDate().isBlank()) {
+            throw new IllegalArgumentException("예약 날짜를 입력해주세요.");
+        }
+        if (request.getTime() == null || request.getTime().isBlank()) {
+            throw new IllegalArgumentException("예약 시간을 입력해주세요.");
+        }
+        try {
+            LocalDate.parse(request.getDate());
+            LocalTime.parse(request.getTime());
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("날짜 또는 시간 형식이 올바르지 않습니다.");
+        }
     }
 
     @DeleteMapping("/reservations/{id}")
