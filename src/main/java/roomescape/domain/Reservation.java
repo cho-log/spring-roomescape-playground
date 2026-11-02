@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
 public class Reservation {
-
+    private static final int MAX_NAME_LENGTH = 255;
     private final Long id;
     private final String name;
     private final String date;
@@ -20,9 +20,18 @@ public class Reservation {
     }
 
     private void validate(String name, String date) {
-        if (name == null || name.isBlank() || name.length() > 255
-                || date == null || date.isBlank()) {
-            throw new IllegalArgumentException("예약 정보를 확인해주세요.");
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("예약자 이름을 입력해주세요.");
+        }
+
+        if (name.length() > MAX_NAME_LENGTH) {
+            throw new IllegalArgumentException(
+                    "예약자 이름은 " + MAX_NAME_LENGTH + "자 이하여야 합니다."
+            );
+        }
+
+        if (date == null || date.isBlank()) {
+            throw new IllegalArgumentException("예약 날짜를 입력해주세요.");
         }
 
         try {
