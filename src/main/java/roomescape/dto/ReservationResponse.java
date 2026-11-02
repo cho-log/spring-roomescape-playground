@@ -18,6 +18,13 @@ public class ReservationResponse {
         this.time = reservation.getTime();
     }
 
+    public ReservationResponse(Long id, String name, LocalDate date, LocalTime time) {
+        this.id = id;
+        this.name = name;
+        this.date = date;
+        this.time = time;
+    }
+
     public Long getId() {
         return id;
     }
