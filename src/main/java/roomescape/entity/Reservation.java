@@ -1,16 +1,17 @@
 package roomescape.entity;
 
+import roomescape.exception.InvalidRequestException;
+
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 public class Reservation {
 
     final private Long id;
     final private String name;
     final private LocalDate date;
-    final private LocalTime time;
+    final private ReservationTime time;
 
-    public Reservation(Long id, String name, LocalDate date, LocalTime time) {
+    public Reservation(Long id, String name, LocalDate date, ReservationTime time) {
         validateName(name);
         validateDate(date);
         validateTime(time);
@@ -32,25 +33,25 @@ public class Reservation {
         return date;
     }
 
-    public LocalTime getTime() {
+    public ReservationTime getTime() {
         return time;
     }
 
     private void validateName(String name) {
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("이름을 적어주세요.");
+            throw new InvalidRequestException("이름을 적어주세요.");
         }
     }
 
     private void validateDate(LocalDate date) {
         if (date == null) {
-            throw new IllegalArgumentException("날짜를 적어주세요.");
+            throw new InvalidRequestException("날짜를 적어주세요.");
         }
     }
 
-    private void validateTime(LocalTime time) {
+    private void validateTime(ReservationTime time) {
         if (time == null) {
-            throw new IllegalArgumentException("시간을 적어주세요.");
+            throw new InvalidRequestException("시간을 적어주세요.");
         }
     }
 }
