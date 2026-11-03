@@ -1,6 +1,7 @@
 package roomescape.dao;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -14,6 +15,9 @@ import java.util.Optional;
 @Repository
 public class TimeDao {
 
+    private static final RowMapper<ReservationTime> ROW_MAPPER =
+            (rs, idx) -> new ReservationTime(rs.getLong("id"), LocalTime.parse(rs.getString("time")));
+
     private final JdbcTemplate jdbcTemplate;
 
     public TimeDao(JdbcTemplate jdbcTemplate) {
@@ -21,16 +25,11 @@ public class TimeDao {
     }
 
     public List<ReservationTime> findAll() {
-        return jdbcTemplate.query(
-                "select id, time from time",
-                (rs, idx) -> new ReservationTime(rs.getLong("id"), LocalTime.parse(rs.getString("time"))));
+        return jdbcTemplate.query("select id, time from time order by time", ROW_MAPPER);
     }
 
     public Optional<ReservationTime> findById(Long id) {
-        List<ReservationTime> times = jdbcTemplate.query(
-                "select id, time from time where id = ?",
-                (rs, idx) -> new ReservationTime(rs.getLong("id"), LocalTime.parse(rs.getString("time"))),
-                id);
+        List<ReservationTime> times = jdbcTemplate.query("select id, time from time where id = ?", ROW_MAPPER, id);
         return times.stream().findFirst();
     }
 

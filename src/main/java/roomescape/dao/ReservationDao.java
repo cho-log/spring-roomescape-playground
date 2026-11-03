@@ -25,7 +25,8 @@ public class ReservationDao {
         return jdbcTemplate.query("""
             select r.id as reservation_id, r.name, r.date, t.id as time_id, t.time as time_value
             from reservation as r
-            inner join time as t on r.time_id = t.id"""
+            inner join time as t on r.time_id = t.id
+            order by r.date, t.time"""
                 , (rs, idx) ->
                 new Reservation(
                         rs.getLong("reservation_id"),
