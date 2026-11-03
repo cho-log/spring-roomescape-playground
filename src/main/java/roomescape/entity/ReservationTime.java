@@ -1,5 +1,7 @@
 package roomescape.entity;
 
+import roomescape.exception.InvalidRequestException;
+
 import java.time.LocalTime;
 
 public class ReservationTime {
@@ -8,7 +10,7 @@ public class ReservationTime {
 
     public ReservationTime(Long id, LocalTime time) {
         if (time == null) {
-            throw new IllegalArgumentException("시간을 적어주세요.");
+            throw new InvalidRequestException("시간을 적어주세요.");
         }
         this.id = id;
         this.time = time;

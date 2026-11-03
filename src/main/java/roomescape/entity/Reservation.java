@@ -1,5 +1,7 @@
 package roomescape.entity;
 
+import roomescape.exception.InvalidRequestException;
+
 import java.time.LocalDate;
 
 public class Reservation {
@@ -37,19 +39,19 @@ public class Reservation {
 
     private void validateName(String name) {
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("이름을 적어주세요.");
+            throw new InvalidRequestException("이름을 적어주세요.");
         }
     }
 
     private void validateDate(LocalDate date) {
         if (date == null) {
-            throw new IllegalArgumentException("날짜를 적어주세요.");
+            throw new InvalidRequestException("날짜를 적어주세요.");
         }
     }
 
     private void validateTime(ReservationTime time) {
         if (time == null) {
-            throw new IllegalArgumentException("시간을 적어주세요.");
+            throw new InvalidRequestException("시간을 적어주세요.");
         }
     }
 }

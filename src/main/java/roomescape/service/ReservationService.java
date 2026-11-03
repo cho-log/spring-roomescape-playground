@@ -5,6 +5,7 @@ import roomescape.dao.ReservationDao;
 import roomescape.dao.TimeDao;
 import roomescape.entity.Reservation;
 import roomescape.entity.ReservationTime;
+import roomescape.exception.InvalidRequestException;
 import roomescape.exception.NotFoundException;
 
 import java.time.LocalDate;
@@ -27,7 +28,7 @@ public class ReservationService {
 
     public Reservation create(String name, LocalDate date, Long timeId) {
         if (timeId == null) {
-            throw new IllegalArgumentException("시간을 선택해주세요.");
+            throw new InvalidRequestException("시간을 선택해주세요.");
         }
         ReservationTime reservationTime = timeDao.findById(timeId)
                 .orElseThrow(() -> new NotFoundException("시간을 찾을 수 없습니다. id = " + timeId));
