@@ -25,11 +25,11 @@ public class TimeDao {
     }
 
     public List<ReservationTime> findAll() {
-        return jdbcTemplate.query("select id, time from time order by time", ROW_MAPPER);
+        return jdbcTemplate.query("select id, time from time where deleted = false order by time", ROW_MAPPER);
     }
 
     public Optional<ReservationTime> findById(Long id) {
-        List<ReservationTime> times = jdbcTemplate.query("select id, time from time where id = ?", ROW_MAPPER, id);
+        List<ReservationTime> times = jdbcTemplate.query("select id, time from time where id = ? and deleted = false", ROW_MAPPER, id);
         return times.stream().findFirst();
     }
 
@@ -46,6 +46,6 @@ public class TimeDao {
     }
 
     public int deleteById(long id) {
-        return jdbcTemplate.update("delete from time where id = ?", id);
+        return jdbcTemplate.update("update time set deleted = true where id = ? and deleted = false", id);
     }
 }
