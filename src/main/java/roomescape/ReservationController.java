@@ -31,16 +31,16 @@ public class ReservationController {
     @ResponseBody
     @GetMapping("/reservations")
     public List<Reservation> read() {
-        reservations.add(new Reservation(1, "red", "2026-11-03", "10:00"));
-        reservations.add(new Reservation(2, "brown", "2026-11-03", "11:00"));
+        // reservations.add(new Reservation(1, "red", "2026-11-03", "10:00"));
+        // reservations.add(new Reservation(2, "brown", "2026-11-03", "11:00"));
         return reservations;
     }
 
     @PostMapping("/reservations")
-    public ResponseEntity<Void> create(@RequestBody Reservation reservation) {
+    public ResponseEntity<Reservation> create(@RequestBody Reservation reservation) {
         Reservation newReservation = Reservation.toEntity(reservation, index.getAndIncrement());
         reservations.add(newReservation);
-        return ResponseEntity.created(URI.create("/reservations/" + newReservation.getId())).build();
+        return ResponseEntity.created(URI.create("/reservations/" + newReservation.getId())).body(newReservation);
     }
 
     @DeleteMapping("/reservations/{id}")
