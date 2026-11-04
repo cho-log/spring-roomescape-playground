@@ -2,61 +2,62 @@
 <html lang="ko">
 
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>방탈출 어드민 페이지</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-  <link rel="stylesheet" href="/css/styles.css">
-  <link rel="stylesheet" href="/css/time.css">
+    <meta charset="UTF-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>방탈출 어드민 페이지</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link href="/css/styles.css" rel="stylesheet">
+    <link href="/css/time.css" rel="stylesheet">
 </head>
 
 <body>
 
 <div class="container-fluid page">
-  <div class="row">
-    <!-- Sidebar -->
-    <div id="sidebar-container" class="col-md-3">
-      <nav id="sidebar" class="text-white">
-        <!-- 로고 영역 -->
-        <div class="sidebar-logo p-4">
-          <a href="/">
-            <img src="https://avatars.githubusercontent.com/u/141792611?s=96&v=4" alt="logo" class="img-fluid rounded-circle">
-          </a>
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3" id="sidebar-container">
+            <nav class="text-white" id="sidebar">
+                <!-- 로고 영역 -->
+                <div class="sidebar-logo p-4">
+                    <a href="/">
+                        <img alt="logo" class="img-fluid rounded-circle"
+                             src="https://avatars.githubusercontent.com/u/141792611?s=96&v=4">
+                    </a>
+                </div>
+                <ul class="list-unstyled mt-4">
+                    <li class="p-3">
+                        <i class="fas fa-calendar-check menu-icon mr-2"></i>
+                        <a class="text-white" href="/reservation">예약관리</a>
+                    </li>
+                    <li class="p-3">
+                        <i class="fas fa-clock menu-icon mr-2"></i>
+                        <a class="text-white" href="/time">시간관리</a>
+                    </li>
+                </ul>
+            </nav>
         </div>
-        <ul class="list-unstyled mt-4">
-          <li class="p-3">
-            <i class="fas fa-calendar-check menu-icon mr-2"></i>
-            <a href="/reservation" class="text-white">예약관리</a>
-          </li>
-          <li class="p-3">
-            <i class="fas fa-clock menu-icon mr-2"></i>
-            <a href="/time" class="text-white">시간관리</a>
-          </li>
-        </ul>
-      </nav>
+        <!-- Content -->
+        <div class="col-md-9 p-5" id="content-container">
+            <h1>시간 관리</h1>
+            <div class="table-header">
+                <button class="btn btn-primary" id="add-time">시간 추가</button>
+            </div>
+            <div class="table-container"/>
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>순서</th>
+                    <th>시간</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody id="time-table-body">
+                </tbody>
+            </table>
+        </div>
     </div>
-    <!-- Content -->
-    <div id="content-container" class="col-md-9 p-5">
-      <h1>시간 관리</h1>
-      <div class="table-header">
-        <button id="add-time" class="btn btn-primary">시간 추가</button>
-      </div>
-      <div class="table-container"/>
-      <table class="table table-bordered">
-        <thead>
-        <tr>
-          <th>순서</th>
-          <th>시간</th>
-          <th></th>
-        </tr>
-        </thead>
-        <tbody id="time-table-body">
-        </tbody>
-      </table>
-    </div>
-  </div>
 </div>
 
 <script src="/js/scripts.js"></script>
