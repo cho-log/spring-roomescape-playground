@@ -1,21 +1,19 @@
 package roomescape.domain;
 
-//얜 더미 api
 public class Reservation {
 
-    public int id;
+    public Long id; //atomic 쓰려면 long으로 해야함
     public String name;
     public String date;
     public String time;
 
-    public Reservation(int id, String name, String date, String time) {
-        this.id = id;
+    public Reservation(String name, String date, String time) {
         this.name = name;
         this.date = date;
         this.time = time;
     }
 
-
-
-
+    public void setId(Long id) {
+        this.id = id;
+    }
 }
