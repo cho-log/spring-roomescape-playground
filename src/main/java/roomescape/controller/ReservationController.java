@@ -22,27 +22,27 @@ public class ReservationController {
     private AtomicLong index = new AtomicLong(1);
 
     @GetMapping("/reservation")
-    public String world() {
+    public String showReservationPage() {
         return "reservation";
     }
 
     @ResponseBody
     @GetMapping("/reservations")
-    public List<Reservation> read() {
+    public List<Reservation> getReservations() {
         // reservations.add(new Reservation(1, "red", "2026-11-03", "10:00"));
         // reservations.add(new Reservation(2, "brown", "2026-11-03", "11:00"));
         return reservations;
     }
 
     @PostMapping("/reservations")
-    public ResponseEntity<Reservation> create(@RequestBody Reservation reservation) {
+    public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation) {
         Reservation newReservation = Reservation.toEntity(reservation, index.getAndIncrement());
         reservations.add(newReservation);
         return ResponseEntity.created(URI.create("/reservations/" + newReservation.getId())).body(newReservation);
     }
 
     @DeleteMapping("/reservations/{id}")
-    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> deleteReservation(@PathVariable("id") Long id) {
         Reservation reservation = reservations.stream()
                                .filter(it -> Objects.equals(it.getId(), id))
                                .findFirst()
