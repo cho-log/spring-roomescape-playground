@@ -1,9 +1,16 @@
 package roomescape.controller;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import roomescape.domain.Reservation;
 
@@ -11,22 +18,10 @@ import roomescape.domain.Reservation;
 public class ReservationController {
     private final List<Reservation> reservations = new ArrayList<>();
 
-    private void initializeReservations() {
-        reservations.add(new Reservation(1, "정명준", "2023-01-01", "10:00"));
-        reservations.add(new Reservation(2, "이규형", "2023-01-02", "11:00"));
-        reservations.add(new Reservation(3, "이고은", "2023-01-03", "12:00"));
-        reservations.add(new Reservation(4, "손서진", "2023-01-04", "13:00"));
-        reservations.add(new Reservation(5, "김수아", "2023-01-05", "14:00"));
-        reservations.add(new Reservation(6, "김예주", "2023-01-06", "15:00"));
-        reservations.add(new Reservation(7, "김민욱", "2023-01-07", "16:00"));
-        reservations.add(new Reservation(8, "김하늘", "2023-01-08", "17:00"));
-        reservations.add(new Reservation(9, "이우석", "2023-01-09", "18:00"));
-        reservations.add(new Reservation(10, "양나은", "2023-01-10", "19:00"));
-        reservations.add(new Reservation(11, "문선영", "2023-01-11", "20:00"));
-    }
+    private AtomicLong index = new AtomicLong(1);
 
     public ReservationController() {
-        initializeReservations();
+        //initializeReservations();
     }
 
     @GetMapping("/reservation")
@@ -42,5 +37,22 @@ public class ReservationController {
     }
 
 
+    @PostMapping("/reservations")
+    //이거 TS로 치면 Promise<Reservation> 뭐 이런느낌?
+    public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation) { //body에 들어오는 json을 Reservation 객체로 바꿔서 reservation에 넣어줌. //이미 여기서값이 넣어지는것
+        reservation.setId(index.getAndIncrement()); //reservation 객체에 id를 설정해줌. index는 1부터 시작해서 1씩 증가함.
+        reservations.add(reservation); //reservations 리스트에 reservation 객체를 추가함.
+        return ResponseEntity.created(URI.create("/reservations/" + reservation.id)).body(reservation); //201 Created 상태코드와 Location 헤더를 설정하고, body에 reservation 객체를 담아서 반환함.
+        // res.status(201).location(`/reservations/${id}`).json(reservation);
+    } //아 잠만 이래서 dto 쓰는건가? 뭔가 하나 빈상태로 넣네 질문해야지
+
+
+    //nestjs에서는 @Delete(:id)
+    @DeleteMapping("/reservations/{id}")
+    //nestjs에서 @Param()이 spring에서는 @PathVariable()
+    public ResponseEntity<Void> deleteReservation(@PathVariable("id") Long id) {
+        reservations.removeIf(reservation -> reservation.id.equals(id)); //reservations 리스트에서 id가 일치하는 reservation 객체를 제거함.
+        return ResponseEntity.noContent().build(); //204 No Content 상태코드를 반환함.
+    }
 
 }
