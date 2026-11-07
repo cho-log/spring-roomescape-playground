@@ -18,3 +18,20 @@
 - API 명세에 따라 예약 추가 API를 구현한다.
 - API 명세에 따라 예약 삭제 API를 구현한다.
 - 예약 관리 페이지에서 예약 추가와 취소가 정상적으로 동작해야 한다.
+
+## 파일 구조
+``````
+src
+├── main
+│   ├── java
+│   │   └── roomescape
+│   │       ├── RoomescapeApplication.java
+│   │       ├── controller
+│   │       │   ├── GreetingViewController.java
+│   │       │   └── ReservationController.java
+│   │       └── model
+│   │           └── Reservation.java
+└── test
+└── java
+└── roomescape
+└── MissionStepTest.java
