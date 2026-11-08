@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import roomescape.domain.Reservation;
+import roomescape.dto.ReservationRequest;
 
 @Controller
 public class ReservationController {
@@ -39,19 +40,20 @@ public class ReservationController {
 
     @PostMapping("/reservations")
     // TS의 Response처럼 HTTP 응답(상태코드, 헤더, 바디)을 담는 클래스. 비동기(Promise)와는 무관
-    public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation) { //body에 들어오는 json을 Reservation 객체로 바꿔서 reservation에 넣어줌. //이미 여기서값이 넣어지는것
-        reservation.setId(index.getAndIncrement()); //reservation 객체에 id를 설정해줌. index는 1부터 시작해서 1씩 증가함.
+    public ResponseEntity<Reservation> createReservation(@RequestBody ReservationRequest request) { // body로 들어온 요청 JSON을 DTO(ReservationRequest)로 받고 request에 넣어줌. //이미 여기서값이 넣어지는것
+        Reservation reservation = new Reservation(index.getAndIncrement(), request.name(), request.date(), request.time()); // 요청에는 id가 없으므로, 서버에서 id를 발급해 완성된 Reservation을 만든다
         reservations.add(reservation); //reservations 리스트에 reservation 객체를 추가함.
-        return ResponseEntity.created(URI.create("/reservations/" + reservation.id)).body(reservation); //201 Created 상태코드와 Location 헤더를 설정하고, body에 reservation 객체를 담아서 반환함.
+        return ResponseEntity.created(URI.create("/reservations/" + reservation.getId())).body(reservation); //201 Created 상태코드와 Location 헤더를 설정하고, body에 reservation 객체를 담아서 반환함.
+        //getter를 사용하여 .id 가 아니라 .getId()로 접근해야함.
         // res.status(201).location(`/reservations/${id}`).json(reservation);
-    } //아 잠만 이래서 dto 쓰는건가? 뭔가 하나 빈상태로 넣네 질문해야지
+    }
 
 
     //nestjs에서는 @Delete(:id)
     @DeleteMapping("/reservations/{id}")
     //nestjs에서 @Param()이 spring에서는 @PathVariable()
     public ResponseEntity<Void> deleteReservation(@PathVariable("id") Long id) {
-        reservations.removeIf(reservation -> reservation.id.equals(id)); //reservations 리스트에서 id가 일치하는 reservation 객체를 제거함.
+        reservations.removeIf(reservation -> reservation.getId().equals(id)); //reservations 리스트에서 id가 일치하는 reservation 객체를 제거함.
         return ResponseEntity.noContent().build(); //204 No Content 상태코드를 반환함.
     }
 
