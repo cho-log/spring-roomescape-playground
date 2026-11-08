@@ -19,7 +19,7 @@ import roomescape.dto.ReservationRequest;
 public class ReservationController {
     private final List<Reservation> reservations = new ArrayList<>();
 
-    private AtomicLong index = new AtomicLong(1);
+    private AtomicLong index = new AtomicLong(0);
 
     public ReservationController() {
         //initializeReservations();
@@ -41,7 +41,7 @@ public class ReservationController {
     @PostMapping("/reservations")
     // TS의 Response처럼 HTTP 응답(상태코드, 헤더, 바디)을 담는 클래스. 비동기(Promise)와는 무관
     public ResponseEntity<Reservation> createReservation(@RequestBody ReservationRequest request) { // body로 들어온 요청 JSON을 DTO(ReservationRequest)로 받고 request에 넣어줌. //이미 여기서값이 넣어지는것
-        Reservation reservation = new Reservation(index.getAndIncrement(), request.name(), request.date(), request.time()); // 요청에는 id가 없으므로, 서버에서 id를 발급해 완성된 Reservation을 만든다
+        Reservation reservation = new Reservation(index.incrementAndGet(), request.name(), request.date(), request.time()); // 요청에는 id가 없으므로, 서버에서 id를 발급해 완성된 Reservation을 만든다
         reservations.add(reservation); //reservations 리스트에 reservation 객체를 추가함.
         return ResponseEntity.created(URI.create("/reservations/" + reservation.getId())).body(reservation); //201 Created 상태코드와 Location 헤더를 설정하고, body에 reservation 객체를 담아서 반환함.
         //getter를 사용하여 .id 가 아니라 .getId()로 접근해야함.
