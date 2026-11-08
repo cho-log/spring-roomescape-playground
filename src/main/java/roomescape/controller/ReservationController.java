@@ -38,7 +38,7 @@ public class ReservationController {
 
 
     @PostMapping("/reservations")
-    //이거 TS로 치면 Promise<Reservation> 뭐 이런느낌?
+    // TS의 Response처럼 HTTP 응답(상태코드, 헤더, 바디)을 담는 클래스. 비동기(Promise)와는 무관
     public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation) { //body에 들어오는 json을 Reservation 객체로 바꿔서 reservation에 넣어줌. //이미 여기서값이 넣어지는것
         reservation.setId(index.getAndIncrement()); //reservation 객체에 id를 설정해줌. index는 1부터 시작해서 1씩 증가함.
         reservations.add(reservation); //reservations 리스트에 reservation 객체를 추가함.
