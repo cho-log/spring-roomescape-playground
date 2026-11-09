@@ -29,8 +29,6 @@ public class ReservationController {
     @ResponseBody
     @GetMapping("/reservations")
     public List<Reservation> getReservations() {
-        // reservations.add(new Reservation(1, "red", "2026-11-03", "10:00"));
-        // reservations.add(new Reservation(2, "brown", "2026-11-03", "11:00"));
         return reservations;
     }
 
