@@ -8,8 +8,8 @@ import roomescape.model.Reservation;
 
 @Repository
 public class ReservationRepository {
-    private List<Reservation> reservations = new ArrayList<>();
-    private AtomicLong index = new AtomicLong(1);
+    private final List<Reservation> reservations = new ArrayList<>();
+    private final AtomicLong index = new AtomicLong(1);
 
     public Reservation save(Reservation reservation) {
         Reservation savedReservation = new Reservation(
@@ -30,7 +30,7 @@ public class ReservationRepository {
         Reservation reservation = reservations.stream()
                 .filter(r -> r.getId() == id)
                 .findFirst()
-                .orElse(null);
+                .orElseThrow(RuntimeException::new);
         reservations.remove(reservation);
     }
 }
