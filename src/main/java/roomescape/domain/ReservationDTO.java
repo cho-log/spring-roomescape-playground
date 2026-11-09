@@ -19,7 +19,7 @@ public class ReservationDTO {
         return time;
     }
 
-    public Reservation toEntity(ReservationDTO reservation, long id) {
-        return new Reservation(id, reservation.getName(), reservation.getDate(), reservation.getTime());
+    public Reservation toEntity(long id) {
+        return new Reservation(id, getName(), getDate(), getTime());
     }
 }
