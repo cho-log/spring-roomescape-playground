@@ -1,12 +1,13 @@
 package roomescape.controller;
 
 import java.net.URI;
-import java.util.ArrayList;
+import java.sql.PreparedStatement;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,9 +31,6 @@ public class ReservationController {
             rs.getString("time")
     );
 
-    private List<Reservation> reservations = new ArrayList<>();
-    private AtomicLong index = new AtomicLong(1);
-
     public ReservationController(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -55,23 +53,30 @@ public class ReservationController {
             throw new BadRequestReservationException("예약자, 날짜, 시간을 모두 입력해야 합니다.");
         }
 
-        Reservation reservation = new Reservation(
-                index.getAndIncrement(),
-                request.getName(),
-                request.getDate(),
-                request.getTime()
-        );
-        reservations.add(reservation);
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(
+                    "INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)",
+                    new String[]{"id"}
+            );
+            ps.setString(1, request.getName());
+            ps.setString(2, request.getDate());
+            ps.setString(3, request.getTime());
+            return ps;
+        }, keyHolder);
 
-        return ResponseEntity.created(URI.create("/reservations/" + reservation.getId()))
+        Long id = keyHolder.getKey().longValue();
+        Reservation reservation = new Reservation(id, request.getName(), request.getDate(), request.getTime());
+
+        return ResponseEntity.created(URI.create("/reservations/" + id))
                 .body(reservation);
     }
 
     @DeleteMapping("/reservations/{id}")
     @ResponseBody
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        boolean removed = reservations.removeIf(reservation -> reservation.getId().equals(id));
-        if (!removed) {
+        int deleted = jdbcTemplate.update("DELETE FROM reservation WHERE id = ?", id);
+        if (deleted == 0) {
             throw new NotFoundReservationException("존재하지 않는 예약입니다. id=" + id);
         }
         return ResponseEntity.noContent().build();
