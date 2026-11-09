@@ -33,7 +33,7 @@ public class MissionStepTest {
                 .when().get("/reservations")
                 .then().log().all()
                 .statusCode(200)
-                .body("size()", is(0)); 
+                .body("size()", is(0));
     }
 
     @Test
