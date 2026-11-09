@@ -1,9 +1,7 @@
 package roomescape.controller;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,23 +12,27 @@ import org.springframework.web.bind.annotation.RestController;
 import roomescape.dto.ReservationRequest;
 import roomescape.dto.ReservationResponse;
 import roomescape.model.Reservation;
+import roomescape.repository.ReservationRepository;
 
 @RestController
 public class ReservationController {
-    private List<Reservation> reservations = new ArrayList<>();
-    private AtomicLong index = new AtomicLong(1);
+    private final ReservationRepository reservationRepository;
+
+    public ReservationController(ReservationRepository reservationRepository) {
+        this.reservationRepository = reservationRepository;
+    }
 
     @GetMapping("/reservations")
     public List<ReservationResponse> getReservations() {
-        return reservations.stream()
+        return reservationRepository.findAll()
+                .stream()
                 .map(ReservationResponse::from)
                 .toList();
     }
 
     @PostMapping("/reservations")
     public ResponseEntity<ReservationResponse> create(@RequestBody ReservationRequest reservationRequest) {
-        Reservation newReservation = reservationRequest.toEntity(index.getAndIncrement());
-        reservations.add(newReservation);
+        Reservation newReservation = reservationRepository.save(reservationRequest.toEntity());
         return ResponseEntity
                 .created(URI.create("/reservations/" + newReservation.getId()))
                 .body(ReservationResponse.from(newReservation));
@@ -38,11 +40,7 @@ public class ReservationController {
 
     @DeleteMapping("/reservations/{id}")
     public ResponseEntity<Void> delete(@PathVariable long id) {
-        Reservation reservation = reservations.stream()
-                .filter(r -> r.getId() == id)
-                .findFirst()
-                .orElseThrow(RuntimeException::new);
-        reservations.remove(reservation);
+        reservationRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }
