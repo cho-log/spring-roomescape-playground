@@ -39,11 +39,10 @@ public class ReservationController {
 
     @DeleteMapping("/reservations/{id}")
     public ResponseEntity<Void> delete(@PathVariable long id) {
-        Reservation reservation = reservations.stream()
-                .filter(r -> r.getId() == id)
-                .findFirst()
-                .orElseThrow(RuntimeException::new);
-        reservations.remove(reservation);
+        boolean removed = reservations.removeIf(r -> r.getId() == id);
+        if (!removed) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.noContent().build();
     }
 
