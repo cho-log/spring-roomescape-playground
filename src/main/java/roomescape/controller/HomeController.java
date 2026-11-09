@@ -9,4 +9,9 @@ public class HomeController {
     public String showHomePage() {
         return "home";
     }
+
+    @GetMapping("/reservation")
+    public String showReservationPage() {
+        return "reservation";
+    }
 }
