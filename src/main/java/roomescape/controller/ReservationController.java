@@ -38,7 +38,7 @@ public class ReservationController {
     }
 
     @DeleteMapping("/reservations/{id}")
-    public ResponseEntity<Reservation> delete(@PathVariable long id) {
+    public ResponseEntity<Void> delete(@PathVariable long id) {
         Reservation reservation = reservations.stream()
                 .filter(r -> r.getId() == id)
                 .findFirst()
