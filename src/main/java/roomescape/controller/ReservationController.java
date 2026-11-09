@@ -17,8 +17,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Controller
 public class ReservationController {
-    List<Reservation> reservations = new ArrayList<>();
-    private AtomicLong index = new AtomicLong(1);
+    private final List<Reservation> reservations = new ArrayList<>();
+    private final AtomicLong nextReservationId = new AtomicLong(1);
 
     @GetMapping("/reservation")
     public String showReservationPage() {
@@ -33,7 +33,7 @@ public class ReservationController {
 
     @PostMapping("/reservations")
     public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation) {
-        Reservation newReservation = Reservation.toEntity(reservation, index.getAndIncrement());
+        Reservation newReservation = Reservation.toEntity(reservation, nextReservationId.getAndIncrement());
         reservations.add(newReservation);
         return ResponseEntity.created(URI.create("/reservations/" + newReservation.getId())).body(newReservation);
     }
