@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,12 +16,11 @@ import roomescape.model.Reservation;
 
 @Controller
 public class ReservationController {
-    private List<Reservation> reservations = new ArrayList<>();
-    private AtomicLong index = new AtomicLong(1);
+    private final List<Reservation> reservations = new ArrayList<>();
+    private final AtomicLong index = new AtomicLong(1);
 
     @GetMapping("/reservation")
-    public String createReservationView(Model model) {
-        model.addAttribute("reservations", reservations);
+    public String createReservationView() {
         return "/reservation";
     }
 
