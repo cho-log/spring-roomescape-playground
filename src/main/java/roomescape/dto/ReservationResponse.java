@@ -1,15 +1,12 @@
 package roomescape.dto;
 
-import java.sql.Time;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import roomescape.model.Reservation;
 
-public record ReservationResponse(long id, String name, String date, String time) {
+public record ReservationResponse(long id, String name, LocalDate date, LocalTime time) {
     public static ReservationResponse from(Reservation reservation) {
-        return new ReservationResponse(
-                reservation.getId(),
-                reservation.getName(),
-                reservation.getDate(),
-                reservation.getTime()
-        );
+        return new ReservationResponse(reservation.getId(), reservation.getName(), reservation.getDate(),
+                reservation.getTime());
     }
 }
