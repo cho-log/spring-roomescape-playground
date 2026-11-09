@@ -20,18 +20,25 @@
 - 예약 관리 페이지에서 예약 추가와 취소가 정상적으로 동작해야 한다.
 
 ## 파일 구조
-``````
+```text
 src
 ├── main
-│   ├── java
-│   │   └── roomescape
-│   │       ├── RoomescapeApplication.java
-│   │       ├── controller
-│   │       │   ├── GreetingViewController.java
-│   │       │   └── ReservationController.java
-│   │       └── model
-│   │           └── Reservation.java
+│   └── java
+│       └── roomescape
+│           ├── RoomescapeApplication.java
+│           ├── controller
+│           │   ├── GreetingViewController.java
+│           │   ├── ReservationController.java
+│           │   └── ReservationViewController.java
+│           ├── dto
+│           │   ├── ReservationRequest.java
+│           │   └── ReservationResponse.java
+│           ├── model
+│           │   └── Reservation.java
+│           └── repository
+│               └── ReservationRepository.java
 └── test
-└── java
-└── roomescape
-└── MissionStepTest.java
+    └── java
+        └── roomescape
+            └── MissionStepTest.java
+```
