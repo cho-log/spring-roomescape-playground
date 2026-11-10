@@ -1,4 +1,6 @@
-package roomescape.domain;
+package roomescape.dto;
+
+import roomescape.domain.Reservation;
 
 public class ReservationDTO {
     private String name;
