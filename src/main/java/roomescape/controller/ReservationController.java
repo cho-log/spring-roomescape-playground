@@ -13,12 +13,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import roomescape.domain.Reservation;
+import roomescape.dto.ReservationRequest;
+import roomescape.dto.ReservationResponse;
 
 @Controller
 public class ReservationController {
     private final List<Reservation> reservations = new ArrayList<>();
 
-    private AtomicLong index = new AtomicLong(1);
+    private final AtomicLong index = new AtomicLong(1);
 
     public ReservationController() {
         //initializeReservations();
@@ -32,19 +34,19 @@ public class ReservationController {
 
     @GetMapping("reservations")
     @ResponseBody //얘는 그냥 반환값을 그대로 응답으로 보내라는거임. 이거 없으면 reservation.html을 찾으려고함.
-    public List<Reservation> getReservations() {
-        return reservations;
+    public List<ReservationResponse> getReservations() {
+        return reservations.stream().map(ReservationResponse::from).toList();
     }
 
 
     @PostMapping("/reservations")
-    //이거 TS로 치면 Promise<Reservation> 뭐 이런느낌?
-    public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation) { //body에 들어오는 json을 Reservation 객체로 바꿔서 reservation에 넣어줌. //이미 여기서값이 넣어지는것
-        reservation.setId(index.getAndIncrement()); //reservation 객체에 id를 설정해줌. index는 1부터 시작해서 1씩 증가함.
-        reservations.add(reservation); //reservations 리스트에 reservation 객체를 추가함.
-        return ResponseEntity.created(URI.create("/reservations/" + reservation.getId())).body(reservation); //201 Created 상태코드와 Location 헤더를 설정하고, body에 reservation 객체를 담아서 반환함.
-        // res.status(201).location(`/reservations/${id}`).json(reservation);
-    } //아 잠만 이래서 dto 쓰는건가? 뭔가 하나 빈상태로 넣네 질문해야지
+    public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationRequest request) {
+        Reservation reservation = new Reservation(index.getAndIncrement(),
+                request.name(), request.date(), request.time());
+        reservations.add(reservation);
+        return ResponseEntity.created(URI.create("/reservations/" + reservation.getId()))
+                .body(ReservationResponse.from(reservation));
+    }
 
 
     //nestjs에서는 @Delete(:id)

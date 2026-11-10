@@ -50,13 +50,18 @@ public class MissionStepTest {
                 .then().log().all()
                 .statusCode(201)
                 .header("Location", "/reservations/1")
-                .body("id", is(1));
+                .body("id", is(1))
+                .body("name", is("브라운"))
+                .body("date", is("2023-08-05"))
+                .body("time", is("15:40"));
 
         RestAssured.given().log().all()
                 .when().get("/reservations")
                 .then().log().all()
                 .statusCode(200)
-                .body("size()", is(1));
+                .body("size()", is(1))
+                .body("[0].id", is(1))
+                .body("[0].name", is("브라운"));
 
         RestAssured.given().log().all()
                 .when().delete("/reservations/1")
