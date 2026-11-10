@@ -5,17 +5,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import roomescape.domain.Reservation;
 import roomescape.dto.ReservationRequest;
 
-@Controller
+@RestController // @Controller + @ResponseBody. 모든 메서드의 반환값을 view 이름이 아닌 응답 body(JSON)로 보냄
 public class ReservationController {
     private final List<Reservation> reservations = new ArrayList<>();
 
@@ -25,14 +24,9 @@ public class ReservationController {
         //initializeReservations();
     }
 
-    @GetMapping("/reservation")
-    public String reservation() {
-        return "reservation"; //reservation.html을 찾아서 렌더링해라. thymeleaf가 알아서 해줌.
-    }
-
-
-    @GetMapping("reservations")
-    @ResponseBody //얘는 그냥 반환값을 그대로 응답으로 보내라는거임. 이거 없으면 reservation.html을 찾으려고함.
+    @GetMapping("/reservations")
+    //@ResponseBody //얘는 그냥 반환값을 그대로 응답으로 보내라는거임. 이거 없으면 reservation.html을 찾으려고함.
+    //위에 @RestController가 @ResponseBody를 포함하고 있어서 없어도됨.
     public List<Reservation> getReservations() {
         return reservations;
     }
