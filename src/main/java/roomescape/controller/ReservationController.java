@@ -53,7 +53,7 @@ public class ReservationController {
     @DeleteMapping("/reservations/{id}")
     //nestjs에서 @Param()이 spring에서는 @PathVariable()
     public ResponseEntity<Void> deleteReservation(@PathVariable("id") Long id) {
-        reservations.removeIf(reservation -> reservation.getId().equals(id)); //reservations 리스트에서 id가 일치하는 reservation 객체를 제거함.
+        reservations.removeIf(reservation -> reservation.hasId(id)); //reservations 리스트에서 id가 일치하는 reservation 객체를 제거함.
         return ResponseEntity.noContent().build(); //204 No Content 상태코드를 반환함.
     }
 
