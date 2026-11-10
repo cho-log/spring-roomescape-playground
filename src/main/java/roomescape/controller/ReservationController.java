@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
+import roomescape.dto.ReservationResponse;
 
 @RestController
 public class ReservationController {
@@ -22,17 +23,17 @@ public class ReservationController {
     private AtomicLong index = new AtomicLong(1);
 
     @GetMapping("/reservations")
-    public List<Reservation> getReservations() {
-        // reservations.add(new Reservation(1, "red", "2026-11-03", "10:00"));
-        // reservations.add(new Reservation(2, "brown", "2026-11-03", "11:00"));
-        return reservations;
+    public List<ReservationResponse> getReservations() {
+        return reservations.stream()
+                .map(ReservationResponse::from)
+                .toList();
     }
 
     @PostMapping("/reservations")
-    public ResponseEntity<Reservation> createReservation(@RequestBody ReservationDTO reservation) {
+    public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationDTO reservation) {
         Reservation newReservation = reservation.toEntity(index.getAndIncrement());
         reservations.add(newReservation);
-        return ResponseEntity.created(URI.create("/reservations/" + newReservation.getId())).body(newReservation);
+        return ResponseEntity.created(URI.create("/reservations/" + newReservation.getId())).body(ReservationResponse.from(newReservation));
     }
 
     @DeleteMapping("/reservations/{id}")
