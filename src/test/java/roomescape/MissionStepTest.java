@@ -10,9 +10,11 @@ import org.springframework.test.annotation.DirtiesContext;
 import static org.hamcrest.Matchers.is;
 
 import java.sql.Connection;
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import io.restassured.http.ContentType;
+import roomescape.model.Reservation;
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -108,6 +110,20 @@ public class MissionStepTest {
             assertThat(connection.getMetaData()
                     .getTables(null, null, "RESERVATION", null).next()).isTrue();
         }
+    }
+
+    @Test
+    void 육단계() {
+        jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)",
+                "브라운", "2023-08-05", "15:40");
+
+        List<Reservation> reservations = RestAssured.given()
+                .when().get("/reservations")
+                .then().statusCode(200)
+                .extract().jsonPath().getList(".", Reservation.class);
+
+        Integer count = jdbcTemplate.queryForObject("SELECT count(1) FROM reservation", Integer.class);
+        assertThat(reservations.size()).isEqualTo(count);
     }
 
 }
