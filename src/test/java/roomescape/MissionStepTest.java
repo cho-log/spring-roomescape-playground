@@ -1,10 +1,15 @@
 package roomescape;
 
 import io.restassured.RestAssured;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import static org.hamcrest.Matchers.is;
+
+import java.sql.Connection;
 import java.util.Map;
 import java.util.HashMap;
 import io.restassured.http.ContentType;
@@ -90,6 +95,19 @@ public class MissionStepTest {
                 .when().delete("/reservations/1")
                 .then().log().all()
                 .statusCode(404);
+    }
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Test
+    void 오단계() throws Exception {
+        try (Connection connection = jdbcTemplate.getDataSource().getConnection()) {
+            assertThat(connection).isNotNull();
+            assertThat(connection.getCatalog()).isEqualTo("DATABASE");
+            assertThat(connection.getMetaData()
+                    .getTables(null, null, "RESERVATION", null).next()).isTrue();
+        }
     }
 
 }
