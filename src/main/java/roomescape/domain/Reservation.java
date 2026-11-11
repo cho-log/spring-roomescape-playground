@@ -26,10 +26,6 @@ public class Reservation {
         return time;
     }
 
-    public static Reservation toEntity(Reservation reservation, long id) {
-        return new Reservation(id, reservation.getName(), reservation.getDate(), reservation.getTime());
-    }
-
     public boolean hasId(long id) {
         return this.id == id;
     }
