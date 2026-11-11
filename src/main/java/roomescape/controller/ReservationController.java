@@ -32,10 +32,10 @@ public class ReservationController {
     }
 
     @PostMapping("/reservations")
-    public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation) {
-        Reservation newReservation = Reservation.toEntity(reservation, nextReservationId.getAndIncrement());
-        reservations.add(newReservation);
-        return ResponseEntity.created(URI.create("/reservations/" + newReservation.getId())).body(newReservation);
+    public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservationRequest) {
+        Reservation createdReservation = Reservation.toEntity(reservationRequest, nextReservationId.getAndIncrement());
+        reservations.add(createdReservation);
+        return ResponseEntity.created(URI.create("/reservations/" + createdReservation.getId())).body(createdReservation);
     }
 
     @DeleteMapping("/reservations/{id}")
