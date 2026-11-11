@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 
 import roomescape.ReservationDao;
 import roomescape.dto.CreateReservationRequest;
+import roomescape.exception.BadRequestReservationException;
 import roomescape.exception.ReservationNotFoundException;
 import roomescape.model.Reservation;
 
@@ -47,35 +48,34 @@ public class ReservationController {
 
     private AtomicLong index = new AtomicLong(1);
 
-    // 예약 생성 (기존 List 방식 유지)
-    @PostMapping("/reservations")
-    @ResponseBody
-    public ResponseEntity<Reservation> createReservation(
-            @Valid @RequestBody CreateReservationRequest request
-    ) {
-        Reservation reservation = new Reservation(
-                index.getAndIncrement(),
-                request.name(),
-                request.date(),
-                request.time()
-        );
-
-        reservations.add(reservation);
-
-        return ResponseEntity
-                .created(URI.create("/reservations/" + reservation.getId()))
-                .body(reservation);
+    // 예약 생성
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 
-    // 예약 삭제 (기존 List 방식 유지)
+    @PostMapping("/reservations")
+    public ResponseEntity<Reservation> save(
+            @RequestBody Reservation request) {
+
+        if (isBlank(request.getName())
+                || isBlank(request.getDate())
+                || isBlank(request.getTime())) {
+            throw new BadRequestReservationException();
+        }
+
+        Reservation saved = reservationDao.save(request);
+
+        return ResponseEntity
+                .created(URI.create("/reservations/" + saved.getId()))
+                .body(saved);
+    }
+
+    // 예약 삭제
     @DeleteMapping("/reservations/{id}")
-    public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        int deletedRows = reservationDao.delete(id);
 
-        boolean removed = reservations.removeIf(
-                reservation -> reservation.getId().equals(id)
-        );
-
-        if (!removed) {
+        if (deletedRows == 0) {
             throw new ReservationNotFoundException(
                     "존재하지 않는 예약입니다. id=" + id
             );

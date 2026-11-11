@@ -6,11 +6,18 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    // ReservationNotFoundException이 발생했을 때 404 Not Found를 반환
+
     @ExceptionHandler(ReservationNotFoundException.class)
     public ResponseEntity<Void> handleNotFound(
             ReservationNotFoundException e
-    ){
+    ) {
         return ResponseEntity.notFound().build();
+    }
+
+    @ExceptionHandler(BadRequestReservationException.class)
+    public ResponseEntity<Void> handleBadRequest(
+            BadRequestReservationException e
+    ) {
+        return ResponseEntity.badRequest().build();
     }
 }
