@@ -7,6 +7,9 @@ public class Reservation {
     private final String time;
 
     public Reservation(Long id, String name, String date, String time) {
+        if (id == null) {
+            throw new IllegalArgumentException("예약 id는 필수입니다.");
+        }
         this.id = id;
         this.name = name;
         this.date = date;
