@@ -32,7 +32,7 @@ public class ReservationController {
     }
 
 
-    @GetMapping("reservations")
+    @GetMapping("/reservations")
     @ResponseBody //얘는 그냥 반환값을 그대로 응답으로 보내라는거임. 이거 없으면 reservation.html을 찾으려고함.
     public List<ReservationResponse> getReservations() {
         return reservations.stream().map(ReservationResponse::from).toList();
