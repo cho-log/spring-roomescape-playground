@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import roomescape.domain.Reservation;
 import roomescape.dto.ReservationRequest;
 import roomescape.dto.ReservationResponse;
+import roomescape.exception.ReservationNotFoundException;
 
 @Controller
 public class ReservationController {
@@ -54,12 +55,21 @@ public class ReservationController {
     @DeleteMapping("/reservations/{id}")
     //nestjs에서 @Param()이 spring에서는 @PathVariable()
     public ResponseEntity<Void> deleteReservation(@PathVariable("id") Long id) {
-        reservations.removeIf(reservation -> reservation.hasId(id)); //reservations 리스트에서 id가 일치하는 reservation 객체를 제거함.
+        boolean removed = reservations.removeIf(reservation -> reservation.hasId(id));
+        if (!removed) {
+            throw new ReservationNotFoundException(id);
+        }
         return ResponseEntity.noContent().build(); //204 No Content 상태코드를 반환함.
     }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Void> handleInvalidReservation(IllegalArgumentException exception) {
         return ResponseEntity.badRequest().build();
+    }
+
+    @ExceptionHandler(ReservationNotFoundException.class)
+    public ResponseEntity<Void> handleReservationNotFound(ReservationNotFoundException exception) {
+        return ResponseEntity.notFound().build();
     }
 
 }
