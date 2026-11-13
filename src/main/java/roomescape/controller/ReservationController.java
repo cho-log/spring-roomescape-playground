@@ -2,6 +2,7 @@ package roomescape.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,11 +33,7 @@ public class ReservationController {
     public ResponseEntity<Reservation> createReservation(
             @RequestBody ReservationRequest reservationRequest
     ) {
-        try {
-            validateReservationRequest(reservationRequest);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        validateReservationRequest(reservationRequest);
 
         Reservation createdReservation = reservationRepository.save(
                 reservationRequest.name(),
@@ -58,11 +55,17 @@ public class ReservationController {
 
     @DeleteMapping("/reservations/{id}")
     public ResponseEntity<Void> deleteReservation(@PathVariable("id") long id) {
-        try {
-            reservationRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.notFound().build();
-        }
+        reservationRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Void> handleInvalidReservation(IllegalArgumentException e) {
+        return ResponseEntity.badRequest().build();
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<Void> handleReservationNotFound(NoSuchElementException e) {
+        return ResponseEntity.notFound().build();
     }
 }
