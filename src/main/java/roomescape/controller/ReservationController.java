@@ -31,6 +31,14 @@ public class ReservationController {
                 .toList();
     }
 
+    @GetMapping("/reservations/{id}")
+    public ReservationResponse getReservation(@PathVariable("id") Long id) {
+        return ReservationResponse.from(reservations.stream()
+                .filter(it -> Objects.equals(it.getId(), id))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundReservationException(id)));
+    }
+
     @PostMapping("/reservations")
     public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationRequest reservation) {
         Reservation newReservation = reservation.toEntity(index.getAndIncrement());
