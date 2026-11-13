@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,6 +56,10 @@ public class ReservationController {
     public ResponseEntity<Void> deleteReservation(@PathVariable("id") Long id) {
         reservations.removeIf(reservation -> reservation.hasId(id)); //reservations 리스트에서 id가 일치하는 reservation 객체를 제거함.
         return ResponseEntity.noContent().build(); //204 No Content 상태코드를 반환함.
+    }
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Void> handleInvalidReservation(IllegalArgumentException exception) {
+        return ResponseEntity.badRequest().build();
     }
 
 }
