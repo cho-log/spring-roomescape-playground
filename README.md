@@ -42,6 +42,12 @@ src
 │           ├── dto
 │           │   ├── ReservationRequest.java
 │           │   └── ReservationResponse.java
+│           ├── exception
+│           │   ├── DuplicateReservationException.java
+│           │   ├── GlobalExceptionHandler.java
+│           │   ├── InvalidReservationException.java
+│           │   ├── NotFoundReservationException.java
+│           │   └── PastReservationException.java
 │           ├── model
 │           │   └── Reservation.java
 │           └── repository
