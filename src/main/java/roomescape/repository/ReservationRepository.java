@@ -2,12 +2,12 @@ package roomescape.repository;
 
 import org.springframework.stereotype.Repository;
 import roomescape.domain.Reservation;
+import roomescape.exception.ReservationNotFoundException;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Repository
@@ -37,7 +37,7 @@ public class ReservationRepository {
         );
 
         if (!removed) {
-            throw new NoSuchElementException("존재하지 않는 예약입니다.");
+            throw new ReservationNotFoundException(id);
         }
     }
 }

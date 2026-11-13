@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import roomescape.domain.Reservation;
 import roomescape.dto.ReservationRequest;
+import roomescape.exception.InvalidReservationException;
 import roomescape.repository.ReservationRepository;
 
 import java.net.URI;
@@ -47,7 +48,7 @@ public class ReservationController {
     private void validateReservationRequest(ReservationRequest request) {
         if (request.name() == null || request.name().isBlank()
                 || request.date() == null || request.time() == null) {
-            throw new IllegalArgumentException("필수 예약 정보가 비어있습니다.");
+            throw new InvalidReservationException("필수 예약 정보가 비어있습니다.");
         }
     }
 
