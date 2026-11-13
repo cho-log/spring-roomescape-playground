@@ -3,12 +3,16 @@ package roomescape.domain;
 import roomescape.exception.InvalidReservationException;
 
 public class Reservation {
-    private final long id;
+    private final Long id;
     private final String name;
     private final String date;
     private final String time;
 
-    public Reservation(long id, String name, String date, String time) {
+    public Reservation(String name, String date, String time) {
+        this(null, name, date, time);
+    }
+
+    public Reservation(Long id, String name, String date, String time) {
         validate(name);
         validate(date);
         validate(time);
@@ -24,7 +28,11 @@ public class Reservation {
         }
     }
 
-    public long getId() {
+    public Reservation withId(Long id) {
+        return new Reservation(id, name, date, time);
+    }
+
+    public Long getId() {
         return id;
     }
     public String getName() {

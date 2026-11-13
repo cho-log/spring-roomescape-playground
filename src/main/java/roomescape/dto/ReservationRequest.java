@@ -21,7 +21,7 @@ public class ReservationRequest {
         return time;
     }
 
-    public Reservation toEntity(long id) {
-        return new Reservation(id, getName(), getDate(), getTime());
+    public Reservation toEntity() {
+        return new Reservation(getName(), getDate(), getTime());
     }
 }
