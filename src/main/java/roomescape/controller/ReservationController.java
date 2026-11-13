@@ -1,5 +1,7 @@
 package roomescape.controller;
 
+import roomescape.dto.ReservationDto;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
+import roomescape.exception.NotFoundReservationException;
 import roomescape.model.Reservation;
 
 @Controller
@@ -31,17 +34,22 @@ public class ReservationController {
     }
 
     @PostMapping("/reservations")
-    public ResponseEntity<Reservation> create(@RequestBody Reservation reservation) {
-        Reservation newReservation = Reservation.toEntity(reservation, index.getAndIncrement());
-        reservations.add(newReservation);
-        return ResponseEntity.created(URI.create("/reservations/" + newReservation.getId())).body(newReservation);
+    public ResponseEntity<Reservation> create(@Valid @RequestBody ReservationDto reservationDto) {
+        Reservation reservation = new Reservation(
+                index.getAndIncrement(),
+                reservationDto.getName(),
+                reservationDto.getDate(),
+                reservationDto.getTime());
+
+        reservations.add(reservation);
+        return ResponseEntity.created(URI.create("/reservations/" + reservation.getId())).body(reservation);
     }
 
     @DeleteMapping("/reservations/{id}")
     public ResponseEntity<Void> delete(@PathVariable long id) {
         boolean removed = reservations.removeIf(r -> r.getId() == id);
         if (!removed) {
-            return ResponseEntity.notFound().build();
+            throw new NotFoundReservationException();
         }
         return ResponseEntity.noContent().build();
     }
