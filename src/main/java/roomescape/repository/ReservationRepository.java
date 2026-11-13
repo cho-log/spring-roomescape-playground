@@ -2,7 +2,6 @@ package roomescape.repository;
 
 import org.springframework.stereotype.Repository;
 import roomescape.domain.Reservation;
-import roomescape.dto.ReservationRequest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,12 +16,12 @@ public class ReservationRepository {
         return List.copyOf(reservations);
     }
 
-    public Reservation save(ReservationRequest reservationRequest) {
+    public Reservation save(String name, String date, String time) {
         Reservation createdReservation = new Reservation(
                 nextReservationId.getAndIncrement(),
-                reservationRequest.name(),
-                reservationRequest.date(),
-                reservationRequest.time()
+                name,
+                date,
+                time
         );
 
         reservations.add(createdReservation);
