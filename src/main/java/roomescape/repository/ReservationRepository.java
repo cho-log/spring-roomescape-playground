@@ -32,11 +32,12 @@ public class ReservationRepository {
     }
 
     public void deleteById(long id) {
-        Reservation reservation = reservations.stream()
-                                              .filter(it -> it.hasId(id))
-                                              .findFirst()
-                                              .orElseThrow(NoSuchElementException::new);
+        boolean removed = reservations.removeIf(
+                reservation -> reservation.hasId(id)
+        );
 
-        reservations.remove(reservation);
+        if (!removed) {
+            throw new NoSuchElementException("존재하지 않는 예약입니다.");
+        }
     }
 }
