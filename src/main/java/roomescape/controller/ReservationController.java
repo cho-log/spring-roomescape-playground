@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import roomescape.dto.ReservationResponse;
+import roomescape.exception.InvalidReservationException;
 import roomescape.exception.NotFoundReservationException;
 
 @RestController
@@ -53,6 +54,11 @@ public class ReservationController {
     @ExceptionHandler(NotFoundReservationException.class)
     public ResponseEntity<Void> handleNotFound(NotFoundReservationException e) {
         return ResponseEntity.notFound().build();
+    }
+
+    @ExceptionHandler(InvalidReservationException.class)
+    public ResponseEntity<Void> handleInvalid(InvalidReservationException e) {
+        return ResponseEntity.badRequest().build();
     }
 
     private Reservation findReservation(Long id) {
