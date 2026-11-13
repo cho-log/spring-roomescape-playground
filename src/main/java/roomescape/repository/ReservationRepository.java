@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Repository
@@ -34,7 +35,7 @@ public class ReservationRepository {
         Reservation reservation = reservations.stream()
                                               .filter(it -> it.hasId(id))
                                               .findFirst()
-                                              .orElseThrow(RuntimeException::new);
+                                              .orElseThrow(NoSuchElementException::new);
 
         reservations.remove(reservation);
     }
