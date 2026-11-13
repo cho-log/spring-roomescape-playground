@@ -33,10 +33,7 @@ public class ReservationController {
 
     @GetMapping("/reservations/{id}")
     public ReservationResponse getReservation(@PathVariable("id") Long id) {
-        return ReservationResponse.from(reservations.stream()
-                .filter(it -> Objects.equals(it.getId(), id))
-                .findFirst()
-                .orElseThrow(() -> new NotFoundReservationException(id)));
+        return ReservationResponse.from(findReservation(id));
     }
 
     @PostMapping("/reservations")
@@ -48,19 +45,21 @@ public class ReservationController {
 
     @DeleteMapping("/reservations/{id}")
     public ResponseEntity<Void> deleteReservation(@PathVariable("id") Long id) {
-        Reservation reservation = reservations.stream()
-                               .filter(it -> Objects.equals(it.getId(), id))
-                               .findFirst()
-                               .orElseThrow(() -> new NotFoundReservationException(id));
-
+        Reservation reservation = findReservation(id);
         reservations.remove(reservation);
-
         return ResponseEntity.noContent().build();
     }
 
     @ExceptionHandler(NotFoundReservationException.class)
     public ResponseEntity<Void> handleNotFound(NotFoundReservationException e) {
         return ResponseEntity.notFound().build();
+    }
+
+    private Reservation findReservation(Long id) {
+        return reservations.stream()
+                .filter(it -> Objects.equals(it.getId(), id))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundReservationException(id));
     }
 
 }
