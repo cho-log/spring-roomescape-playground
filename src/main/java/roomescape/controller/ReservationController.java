@@ -2,6 +2,7 @@ package roomescape.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import roomescape.dto.ReservationResponse;
+import roomescape.exception.NotFoundReservationException;
 
 @RestController
 public class ReservationController {
@@ -41,11 +43,16 @@ public class ReservationController {
         Reservation reservation = reservations.stream()
                                .filter(it -> Objects.equals(it.getId(), id))
                                .findFirst()
-                               .orElseThrow(RuntimeException::new);
+                               .orElseThrow(() -> new NotFoundReservationException(id));
 
         reservations.remove(reservation);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @ExceptionHandler(NotFoundReservationException.class)
+    public ResponseEntity<Void> handleNotFound(NotFoundReservationException e) {
+        return ResponseEntity.notFound().build();
     }
 
 }
