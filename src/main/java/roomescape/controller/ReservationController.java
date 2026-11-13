@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import roomescape.ReservationDao;
 import roomescape.dto.CreateReservationRequest;
 import roomescape.exception.ReservationNotFoundException;
 import roomescape.model.Reservation;
@@ -15,25 +16,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static org.apache.logging.log4j.util.Strings.isBlank;
+
 @Controller
 public class ReservationController {
     
 
     // Reservation
-    @GetMapping("/reservation")
+    //@GetMapping("/reservation")
     public String reservation(){
         return "reservation";
     }
 
     private List<Reservation> reservations = new ArrayList<>();
     private final AtomicLong index=new AtomicLong(1);
-    @GetMapping("/reservations")
+    //@GetMapping("/reservations")
     @ResponseBody
     public List<Reservation> getReservations(Model model){
         //m2 더미데이터 모두 삭제함. 예약 추가 api 만들 때 중복 id 문제 발생 가능성
         return reservations;
     }
 
+    /*
     //m3,  예약 추가 api
     @PostMapping("/reservations")
     @ResponseBody
@@ -66,4 +70,47 @@ public class ReservationController {
 
         return ResponseEntity.noContent().build();
     }
+    */
+
+    //m6 데이터 조회하기-controller 연결
+    private final ReservationDao reservationDao;
+
+    public ReservationController(ReservationDao reservationDao) {
+        this.reservationDao = reservationDao;
+    }
+/*
+    @GetMapping("/reservations")
+    @ResponseBody
+    public List<Reservation> getReservations() {
+        return reservationDao.findAll();
+    }
+*/
+
+    //m7
+    @PostMapping("/reservations")
+    public ResponseEntity<Reservation> save(
+            @RequestBody Reservation request) throws BadRequestReservationException {
+        if (isBlank(request.getName())
+            || isBlank(request.getDate())
+            || isBlank(request.getTime())){
+            throw new BadRequestReservationException();
+        }
+
+        Reservation saved = reservationDao.save(request);
+
+        return ResponseEntity.created((URI.create("/reservations/"+ saved.getId())))
+                .body(saved);
+
+    }
+
+    @DeleteMapping("/reservations/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) throws NotFoundReservationException {
+        int deletedRows = reservationDao.delete(id);
+
+        if (deletedRows == 0)
+            throw new NotFoundReservationException();
+
+        return ResponseEntity.noContent().build();
+    }
+
 }
