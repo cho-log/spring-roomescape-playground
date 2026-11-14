@@ -1,5 +1,6 @@
 package roomescape.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import roomescape.domain.Reservation;
 import roomescape.dto.ReservationRequest;
-import roomescape.exception.InvalidReservationException;
 import roomescape.repository.ReservationRepository;
 
 import java.net.URI;
@@ -30,10 +30,8 @@ public class ReservationController {
 
     @PostMapping("/reservations")
     public ResponseEntity<Reservation> createReservation(
-            @RequestBody ReservationRequest reservationRequest
+            @Valid @RequestBody ReservationRequest reservationRequest
     ) {
-        validateReservationRequest(reservationRequest);
-
         Reservation createdReservation = reservationRepository.save(
                 reservationRequest.name(),
                 reservationRequest.date(),
@@ -43,13 +41,6 @@ public class ReservationController {
         return ResponseEntity.created(
                 URI.create("/reservations/" + createdReservation.getId())
         ).body(createdReservation);
-    }
-
-    private void validateReservationRequest(ReservationRequest request) {
-        if (request.name() == null || request.name().isBlank()
-                || request.date() == null || request.time() == null) {
-            throw new InvalidReservationException("필수 예약 정보가 비어있습니다.");
-        }
     }
 
     @DeleteMapping("/reservations/{id}")
