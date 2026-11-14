@@ -25,17 +25,16 @@ public class ReservationController {
     private final AtomicLong index = new AtomicLong(1);
 
     public ReservationController() {
-        //initializeReservations();
     }
 
     @GetMapping("/reservation")
     public String reservation() {
-        return "reservation"; //reservation.html을 찾아서 렌더링해라. thymeleaf가 알아서 해줌.
+        return "reservation";
     }
 
 
     @GetMapping("/reservations")
-    @ResponseBody //얘는 그냥 반환값을 그대로 응답으로 보내라는거임. 이거 없으면 reservation.html을 찾으려고함.
+    @ResponseBody
     public List<ReservationResponse> getReservations() {
         return reservations.stream().map(ReservationResponse::from).toList();
     }
@@ -51,15 +50,13 @@ public class ReservationController {
     }
 
 
-    //nestjs에서는 @Delete(:id)
     @DeleteMapping("/reservations/{id}")
-    //nestjs에서 @Param()이 spring에서는 @PathVariable()
     public ResponseEntity<Void> deleteReservation(@PathVariable("id") Long id) {
         boolean removed = reservations.removeIf(reservation -> reservation.hasId(id));
         if (!removed) {
             throw new ReservationNotFoundException(id);
         }
-        return ResponseEntity.noContent().build(); //204 No Content 상태코드를 반환함.
+        return ResponseEntity.noContent().build();
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
