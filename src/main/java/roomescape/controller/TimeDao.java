@@ -41,4 +41,9 @@ public class TimeDao {
     public void deleteById(Long id) {
         jdbcTemplate.update("DELETE FROM time WHERE id = ?", id);
     }
+
+    public Time findById(Long id) {
+        return jdbcTemplate.queryForObject(
+                "SELECT id, time FROM time WHERE id = ?", ROW_MAPPER, id);
+    }
 }

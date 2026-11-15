@@ -48,10 +48,12 @@ public class MissionStepTest {
 
     @Test
     void 삼단계() {
+        jdbcTemplate.update("INSERT INTO time (time) VALUES (?)", "15:40");
+
         Map<String, String> params = new HashMap<>();
         params.put("name", "브라운");
         params.put("date", "2023-08-05");
-        params.put("time", "15:40");
+        params.put("time", "1");
 
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
@@ -113,7 +115,8 @@ public class MissionStepTest {
 
     @Test
     void 육단계() {
-        jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)", "브라운", "2023-08-05", "15:40");
+        jdbcTemplate.update("INSERT INTO time (time) VALUES (?)", "15:40");
+        jdbcTemplate.update("INSERT INTO reservation (name, date, time_id) VALUES (?, ?, ?)", "브라운", "2023-08-05", 1L);
 
         List<Reservation> reservations = RestAssured.given().log().all()
                 .when().get("/reservations")
@@ -128,10 +131,12 @@ public class MissionStepTest {
 
     @Test
     void 칠단계() {
+        jdbcTemplate.update("INSERT INTO time (time) VALUES (?)", "10:00");
+
         Map<String, String> params = new HashMap<>();
         params.put("name", "브라운");
         params.put("date", "2023-08-05");
-        params.put("time", "10:00");
+        params.put("time", "1");
 
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
@@ -176,5 +181,20 @@ public class MissionStepTest {
                 .when().delete("/times/1")
                 .then().log().all()
                 .statusCode(204);
+    }
+
+    @Test
+    void 구단계() {
+        Map<String, String> reservation = new HashMap<>();
+        reservation.put("name", "브라운");
+        reservation.put("date", "2023-08-05");
+        reservation.put("time", "10:00");
+
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(reservation)
+                .when().post("/reservations")
+                .then().log().all()
+                .statusCode(400);
     }
 }
