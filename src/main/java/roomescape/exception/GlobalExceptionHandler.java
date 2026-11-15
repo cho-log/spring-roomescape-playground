@@ -8,13 +8,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidReservationException.class)
-    public ResponseEntity<Void> handleInvalid() {
-        return ResponseEntity.badRequest().build();
+    public ResponseEntity<String> handleInvalid(InvalidReservationException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
 
     @ExceptionHandler(NotFoundReservationException.class)
-    public ResponseEntity<Void> handleNotFound() {
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<String> handleNotFound(NotFoundReservationException e) {
+        return ResponseEntity.status(404).body(e.getMessage());
     }
 
 }
