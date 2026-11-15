@@ -35,11 +35,6 @@ public class ReservationController {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    @GetMapping("/reservation")
-    public String reservationPage() {
-        return "reservation";
-    }
-
     @GetMapping("/reservations")
     @ResponseBody
     public List<Reservation> reservations() {
