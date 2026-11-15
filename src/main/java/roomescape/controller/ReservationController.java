@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import roomescape.domain.Reservation;
 import roomescape.dto.ReservationRequest;
-import roomescape.exception.InvalidReservationException;
 import roomescape.exception.NotFoundReservationException;
 
 @RestController
@@ -29,9 +28,6 @@ public class ReservationController {
 
     @PostMapping("/reservations")
     public ResponseEntity<Reservation> createReservation(@RequestBody ReservationRequest request) {
-        if (isBlank(request.name()) || request.date() == null || request.time() == null) {
-            throw new InvalidReservationException("예약 정보(name, date, time)는 비어 있을 수 없습니다.");
-        }
         Reservation reservation = new Reservation(idGenerator.incrementAndGet(), request.name(), request.date(),
                 request.time());
         reservations.add(reservation);
@@ -39,9 +35,6 @@ public class ReservationController {
                 .body(reservation);
     }
 
-    private boolean isBlank(String value) {
-        return value == null || value.isBlank();
-    }
 
     @DeleteMapping("/reservations/{id}")
     public ResponseEntity<Void> deleteReservation(@PathVariable("id") Long id) {
