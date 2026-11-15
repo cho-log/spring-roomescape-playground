@@ -29,7 +29,7 @@ public class ReservationController {
 
     @PostMapping("/reservations")
     public ResponseEntity<Reservation> createReservation(@RequestBody ReservationRequest request) {
-        if (isBlank(request.name()) || isBlank(request.date()) || isBlank(request.time())) {
+        if (isBlank(request.name()) ||request.date() == null || request.time() == null) {
             throw new InvalidReservationException("예약 정보(name, date, time)는 비어 있을 수 없습니다.");
         }
         Reservation reservation = new Reservation(index.incrementAndGet(), request.name(), request.date(),
