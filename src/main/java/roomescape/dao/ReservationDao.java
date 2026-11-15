@@ -1,4 +1,4 @@
-package roomescape.controller;
+package roomescape.dao;
 
 import java.sql.PreparedStatement;
 import java.util.List;
