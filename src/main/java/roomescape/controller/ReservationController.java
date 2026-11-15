@@ -20,7 +20,7 @@ import roomescape.exception.NotFoundReservationException;
 public class ReservationController {
     private final List<Reservation> reservations = new ArrayList<>();
 
-    private AtomicLong index = new AtomicLong(0);
+    private final AtomicLong idGenerator = new AtomicLong(0);
 
     @GetMapping("/reservations")
     public List<Reservation> getReservations() {
@@ -29,10 +29,10 @@ public class ReservationController {
 
     @PostMapping("/reservations")
     public ResponseEntity<Reservation> createReservation(@RequestBody ReservationRequest request) {
-        if (isBlank(request.name()) ||request.date() == null || request.time() == null) {
+        if (isBlank(request.name()) || request.date() == null || request.time() == null) {
             throw new InvalidReservationException("예약 정보(name, date, time)는 비어 있을 수 없습니다.");
         }
-        Reservation reservation = new Reservation(index.incrementAndGet(), request.name(), request.date(),
+        Reservation reservation = new Reservation(idGenerator.incrementAndGet(), request.name(), request.date(),
                 request.time());
         reservations.add(reservation);
         return ResponseEntity.created(URI.create("/reservations/" + reservation.getId()))
