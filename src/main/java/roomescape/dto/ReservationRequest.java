@@ -6,6 +6,6 @@ import roomescape.model.Reservation;
 
 public record ReservationRequest(String name, LocalDate date, LocalTime time) {
     public Reservation toEntity() {
-        return Reservation.create(name, date, time);
+        return new Reservation(name, date, time);
     }
 }
