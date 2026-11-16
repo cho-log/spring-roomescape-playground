@@ -24,6 +24,12 @@ class ReservationTest {
     }
 
     @Test
+    void 이름이_비어_있으면_공백이면_발생한다() {
+        assertThatThrownBy(() -> new Reservation(" ", TOMORROW, TEN_O_CLOCK))
+                .isInstanceOf(InvalidReservationException.class);
+    }
+
+    @Test
     void 날짜가_null이면_예외가_발생한다() {
         assertThatThrownBy(() -> new Reservation("브라운", null, TEN_O_CLOCK))
                 .isInstanceOf(InvalidReservationException.class);
