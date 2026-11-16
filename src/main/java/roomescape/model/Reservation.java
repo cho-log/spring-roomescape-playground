@@ -1,10 +1,8 @@
 package roomescape.model;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import roomescape.exception.InvalidReservationException;
-import roomescape.exception.PastReservationException;
 
 public class Reservation {
     private final long id;
@@ -24,21 +22,9 @@ public class Reservation {
         this(0, name, date, time);
     }
 
-    public static Reservation create(String name, LocalDate date, LocalTime time) {
-        Reservation reservation = new Reservation(name, date, time);
-        reservation.validateNotPast();
-        return reservation;
-    }
-
     private void validateNotEmpty(String name, LocalDate date, LocalTime time) {
         if (name == null || name.isBlank() || date == null || time == null) {
             throw new InvalidReservationException("이름, 날짜, 시간은 비어 있을 수 없습니다.");
-        }
-    }
-
-    private void validateNotPast() {
-        if (LocalDateTime.of(date, time).isBefore(LocalDateTime.now())) {
-            throw new PastReservationException("지난 날짜와 시간으로는 예약할 수 없습니다.");
         }
     }
 
