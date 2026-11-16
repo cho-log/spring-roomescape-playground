@@ -41,9 +41,11 @@ public class MissionStepTest {
 
     @Test
     void 예약_추가와_삭제() {
+        String tomorrow = LocalDate.now().plusDays(1).toString();
+
         Map<String, String> params = new HashMap<>();
         params.put("name", "브라운");
-        params.put("date", "2027-08-05");
+        params.put("date", tomorrow);
         params.put("time", "15:40");
 
         RestAssured.given().log().all()
@@ -135,9 +137,11 @@ public class MissionStepTest {
 
     @Test
     void 이미_예약된_날짜와_시간으로_예약하면_409를_응답한다() {
+        String tomorrow = LocalDate.now().plusDays(1).toString();
+
         Map<String, String> params = new HashMap<>();
         params.put("name", "브라운");
-        params.put("date", "2028-11-11");
+        params.put("date", tomorrow);
         params.put("time", "10:00");
 
         RestAssured.given().log().all()
