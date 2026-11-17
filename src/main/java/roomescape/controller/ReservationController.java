@@ -1,5 +1,7 @@
 package roomescape.controller;
 
+import jakarta.validation.Valid;
+import java.net.URI;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -22,26 +24,28 @@ public class ReservationController {
         this.reservationService = reservationService;
     }
 
-    @GetMapping("/reservation")
+    @GetMapping(value = "/reservation")
     public String createReservationForm() {
-        return "reservation";
+        return "new-reservation";
     }
 
-    @GetMapping("/reservations")
+    @GetMapping(value = "/reservations")
     @ResponseBody
     public List<ReservationResponse> getReservations() {
         return reservationService.getReservations();
     }
 
-    @PostMapping("/reservations")
+    @PostMapping(value = "/reservations")
     @ResponseBody
-    public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationRequest reservationRequest) {
-        return reservationService.createReservation(reservationRequest);
+    public ResponseEntity<ReservationResponse> createReservation(@RequestBody @Valid ReservationRequest reservationRequest) {
+        ReservationResponse reservationResponse = reservationService.createReservation(reservationRequest);
+        return ResponseEntity.created(URI.create("/reservations/" + reservationResponse.getId())).body(reservationResponse);
     }
 
     @DeleteMapping(value = "/reservations/{deletedReservationId}")
     @ResponseBody
     public ResponseEntity<?> deleteReservation(@PathVariable Long deletedReservationId) {
-        return reservationService.deleteReservation(deletedReservationId);
+        reservationService.deleteReservation(deletedReservationId);
+        return ResponseEntity.noContent().build();
     }
 }

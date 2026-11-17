@@ -1,43 +1,32 @@
 package roomescape.data.service;
-
-import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import roomescape.data.dao.daoInterface.ReservationDao;
+import roomescape.data.repository.repositoryInterface.ReservationRepository;
 import roomescape.data.dto.ReservationRequest;
 import roomescape.data.dto.ReservationResponse;
+import roomescape.data.entity.Reservation;
 
 @Service
 public class ReservationService {
 
     @Autowired
-    private final ReservationDao reservationDao;
-
-    public ReservationService(ReservationDao reservationDao) {
-        this.reservationDao = reservationDao;
-    }
+    private ReservationRepository reservationRepository;
 
     public List<ReservationResponse> getReservations() {
-        return reservationDao.getReservations();
+        List<Reservation> reservations = reservationRepository.findAll();
+        return reservations.stream().map(ReservationResponse::from).collect(Collectors.toList());
     }
 
-    public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationRequest reservationRequest) {
-        long newReservationId = reservationDao.createReservation(reservationRequest);
-        URI location = ServletUriComponentsBuilder.fromPath("/reservations/" + newReservationId)
-                .build()
-                .toUri();
-        ReservationResponse reservationResponse = new ReservationResponse(newReservationId, reservationRequest.getName(), reservationRequest.getDate(),
-                reservationRequest.getTime());
-        return ResponseEntity.created(location).body(reservationResponse);
+    public ReservationResponse createReservation(@RequestBody ReservationRequest reservationRequest) {
+        Reservation newReservation = reservationRepository.save(reservationRequest);
+        return ReservationResponse.from(newReservation);
     }
 
-    public ResponseEntity<?> deleteReservation(@PathVariable Long deletedReservationId) {
-        reservationDao.deleteReservation(deletedReservationId);
-        return ResponseEntity.noContent().build();
+    public void deleteReservation(@PathVariable Long deletedReservationId) {
+        reservationRepository.deleteById(deletedReservationId);
     }
 }

@@ -1,32 +1,27 @@
 package roomescape.data.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import roomescape.data.entity.Reservation;
+import roomescape.data.entity.ReservationTime;
+
+@AllArgsConstructor
+@Builder
+@Getter
 public class ReservationResponse {
 
     private long id;
     private String name;
     private String date;
-    private String time;
+    private ReservationTime time;
 
-    public ReservationResponse(long id, String name, String date, String time) {
-        this.id = id;
-        this.name = name;
-        this.date = date;
-        this.time = time;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDate() {
-        return date;
-    }
-
-    public String getTime() {
-        return time;
+    public static ReservationResponse from(Reservation reservation) {
+        return ReservationResponse.builder()
+                .id(reservation.getId())
+                .date(reservation.getDate())
+                .name(reservation.getName())
+                .time(reservation.getTime())
+                .build();
     }
 }
