@@ -181,15 +181,34 @@ public class MissionStepTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"date, 2026-02-30", "time, 25:00"})
-    void 존재하지_않는_날짜와_시간은_저장하지_않는다(String field, String value) {
+    @CsvSource({"date, 2026-02-30, INVALID_DATE", "time, 25:00, INVALID_TIME"})
+    void 존재하지_않는_날짜와_시간은_저장하지_않는다(String field, String value, String expectedCode) {
         Map<String, String> params = new HashMap<>(Map.of(
                 "name", "브라운", "date", "2023-08-05", "time", "15:40"));
         params.put(field, value);
         RestAssured.given().contentType(ContentType.JSON).body(params)
                 .when().post("/reservations")
-                .then().statusCode(400);
+                .then().statusCode(400).body("code", is(expectedCode));
         RestAssured.given().when().get("/reservations")
                 .then().statusCode(200).body("size()", is(0));
+    }
+
+    @Test
+    void 예약_오류의_코드와_메시지를_반환한다() {
+        RestAssured.given().contentType(ContentType.JSON)
+                .body(Map.of("name", "", "date", "2023-08-05", "time", "15:40"))
+                .when().post("/reservations")
+                .then().statusCode(400).body("code", is("MISSING_NAME"))
+                .body("message", is("예약자 이름은 필수입니다."));
+        RestAssured.given().when().delete("/reservations/999")
+                .then().statusCode(404).body("code", is("RESERVATION_NOT_FOUND"))
+                .body("message", is("예약을 찾을 수 없습니다."));
+    }
+
+    @Test
+    void 잘못된_JSON은_요청_오류로_안내한다() {
+        RestAssured.given().contentType(ContentType.JSON).body("{broken")
+                .when().post("/reservations")
+                .then().statusCode(400).body("code", is("INVALID_REQUEST"));
     }
 }
