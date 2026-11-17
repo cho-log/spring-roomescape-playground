@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
@@ -177,5 +178,18 @@ public class MissionStepTest {
                 .when().delete("/reservations/1")
                 .then().log().all()
                 .statusCode(404);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"date, 2026-02-30", "time, 25:00"})
+    void 존재하지_않는_날짜와_시간은_저장하지_않는다(String field, String value) {
+        Map<String, String> params = new HashMap<>(Map.of(
+                "name", "브라운", "date", "2023-08-05", "time", "15:40"));
+        params.put(field, value);
+        RestAssured.given().contentType(ContentType.JSON).body(params)
+                .when().post("/reservations")
+                .then().statusCode(400);
+        RestAssured.given().when().get("/reservations")
+                .then().statusCode(200).body("size()", is(0));
     }
 }
