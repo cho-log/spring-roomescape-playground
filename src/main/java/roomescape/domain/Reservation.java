@@ -2,12 +2,13 @@ package roomescape.domain;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 @Data
+@Builder
 public class Reservation {
     private Long id;
     @NotBlank
@@ -15,9 +16,9 @@ public class Reservation {
     @NotNull
     private LocalDate date;
     @NotNull
-    private LocalTime time;
+    private Time time;
 
-    public Reservation(Long id, String name, LocalDate date, LocalTime time) {
+    public Reservation(Long id, String name, LocalDate date, Time time) {
         this.id = id;
         this.name = name;
         this.date = date;
