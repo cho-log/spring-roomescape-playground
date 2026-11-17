@@ -25,7 +25,7 @@ public class RoomescapeController {
 
     @GetMapping("/reservation")
     public String reservationPage() {
-        return "reservation";
+        return "new-reservation";
     }
 
     @GetMapping("/reservations")
@@ -39,10 +39,6 @@ public class RoomescapeController {
 
     @PostMapping("/reservations")
     public ResponseEntity<ReservationDTO> addReservation(@Valid @RequestBody ReservationDTO reservationDTO, BindingResult result) {
-        if (result.hasErrors()) {
-            String errorMessage = result.getFieldError().getDefaultMessage();
-            throw new InvalidReservationException(errorMessage);
-        }
         Reservation newReservation = reservationService.addReservation(new Reservation(reservationDTO.getName(), reservationDTO.getDateToString(), reservationDTO.getTimeToString()));
         return ResponseEntity
                 .created(URI.create("/reservations/" + newReservation.getID()))

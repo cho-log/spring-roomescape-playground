@@ -2,6 +2,7 @@ package roomescape.DAO;
 
 import io.micrometer.common.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
@@ -12,6 +13,7 @@ import roomescape.domain.Reservation;
 import roomescape.domain.value.*;
 import roomescape.exception.ErrorCode;
 import roomescape.exception.InvalidReservationException;
+import roomescape.exception.NotFoundException;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
@@ -40,31 +42,48 @@ public class ReservationDAO {
     };
 
     public List<Reservation> findAllReservations() {
-        String sql = "SELECT * FROM reservation";
-        return jdbcTemplate.query(sql, actorRowMapper);
+        String sql = """
+        SELECT 
+            r.id as reservation_id, 
+            r.name, 
+            r.date, 
+            t.id as time_id, 
+            t.time as time_value 
+        FROM reservation as r
+        INNER JOIN time as t ON r.time_id = t.id
+        """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new Reservation(
+                rs.getLong("reservation_id"),
+                rs.getString("name"),
+                rs.getString("date"),
+                String.valueOf(new Time(rs.getLong("time_id"), rs.getString("time_value")))
+        ));
     }
 
     public Reservation insertReservation(Reservation reservation) {
-        if (StringUtils.isBlank(reservation.getName()) || reservation.getDate() == null || reservation.getTime() == null) {
-            throw new InvalidReservationException(ErrorCode.INVALID_RESERVATION.getMessage());
+        if (StringUtils.isBlank(reservation.getName()) || reservation.getDate() == null || reservation.getTime() == null || reservation.getTimeId() == null) {
+            throw new InvalidReservationException(ErrorCode.INVALID_RESERVATION);
         }
-        final String sql = "INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)";
+        final String sql = "INSERT INTO reservation (name, date, time_id) VALUES (?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, reservation.getName());
-            ps.setString(2, reservation.getDate().toString());
-            ps.setString(3, reservation.getTime().toString());
+            ps.setString(2, String.valueOf(reservation.getDate()));
+            ps.setLong(3, reservation.getTimeId());
             return ps;
         }, keyHolder);
 
         Long newId = keyHolder.getKey().longValue();
-        return new Reservation(newId, reservation.getName(), reservation.getDate(), reservation.getTime());
+        return new Reservation(newId, reservation.getName(), String.valueOf(reservation.getDate()), String.valueOf(reservation.getTime()));
     }
 
     public void deleteReservation(Long id) {
         String sql = "DELETE FROM reservation WHERE id = ?";
-        jdbcTemplate.update(sql, id);
+        int count = jdbcTemplate.update(sql, id);
+
+        if (count == 0)  throw new NotFoundException(ErrorCode.RESERVATION_NOT_FOUND);
     }
 }

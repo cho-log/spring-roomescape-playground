@@ -62,4 +62,8 @@ public class Reservation {
     public LocalTime getTime() {
         return time.getTime();
     }
+
+    public Long getTimeId() {
+        return time.getId();
+    }
 }

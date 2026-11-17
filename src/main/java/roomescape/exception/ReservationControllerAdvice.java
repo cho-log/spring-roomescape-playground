@@ -12,8 +12,8 @@ public class ReservationControllerAdvice {
         return ResponseEntity.badRequest().body(e.getMessage());
     }
 
-    @ExceptionHandler(NotFoundReservationException.class)
-    public ResponseEntity<String> handleNotFoundReservationException(NotFoundReservationException e) {
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<String> handleNotFoundReservationException(NotFoundException e) {
         return ResponseEntity.badRequest().body(e.getMessage());
     }
 }
