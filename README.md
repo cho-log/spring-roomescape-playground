@@ -27,8 +27,13 @@ src
 │       └── roomescape
 │           ├── RoomescapeApplication.java
 │           ├── controller
-│           │   ├── GreetingViewController.java
-│           │   └── ReservationController.java
+│           │   ├── GlobalExceptionHandler.java
+│           │   ├── ReservationController.java
+│           │   └── ViewController.java
+│           ├── dto
+│           │   └── ReservationDto.java
+│           ├── exception
+│           │   └── NotFoundReservationException.java
 │           └── model
 │               └── Reservation.java
 └── test
