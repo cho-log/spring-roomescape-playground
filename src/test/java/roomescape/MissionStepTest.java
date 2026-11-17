@@ -1,5 +1,6 @@
 package roomescape;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 
 import io.restassured.RestAssured;
@@ -83,13 +84,16 @@ public class MissionStepTest {
                 .body(params)
                 .when().post("/reservations")
                 .then().log().all()
-                .statusCode(400);
+                .statusCode(400)
+                .body(containsString("날짜를 입력해주세요."))   // 이것도 만족해야 하고
+                .body(containsString("시간을 입력해주세요."));   // 이것도 만족해야 함
 
         // 삭제할 예약이 없는 경우
         RestAssured.given().log().all()
                 .when().delete("/reservations/1")
                 .then().log().all()
-                .statusCode(404);
+                .statusCode(404)
+                .body(is("존재하지 않는 예약입니다."));
     }
 
 }
