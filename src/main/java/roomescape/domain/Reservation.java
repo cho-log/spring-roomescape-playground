@@ -1,5 +1,8 @@
 package roomescape.domain;
 
+import roomescape.exception.ErrorCode;
+import roomescape.exception.ReservationException;
+
 public class Reservation {
     private final Long id;
     private final String name;
@@ -10,18 +13,18 @@ public class Reservation {
         if (id == null) {
             throw new IllegalArgumentException("예약 id는 필수입니다.");
         }
-        validateRequired(name, "예약자 이름은 필수입니다.");
-        validateRequired(date, "예약 날짜는 필수입니다.");
-        validateRequired(time, "예약 시간은 필수입니다.");
+        validateRequired(name, ErrorCode.MISSING_NAME);
+        validateRequired(date, ErrorCode.MISSING_DATE);
+        validateRequired(time, ErrorCode.MISSING_TIME);
         this.id = id;
         this.name = name;
         this.date = date;
         this.time = time;
     }
 
-    private void validateRequired(String value, String message) {
+    private void validateRequired(String value, ErrorCode errorCode) {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(message);
+            throw new ReservationException(errorCode);
         }
     }
 

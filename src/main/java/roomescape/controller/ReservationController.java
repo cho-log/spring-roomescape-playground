@@ -16,7 +16,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import roomescape.domain.Reservation;
 import roomescape.dto.ReservationRequest;
 import roomescape.dto.ReservationResponse;
-import roomescape.exception.ReservationNotFoundException;
+import roomescape.exception.ErrorCode;
+import roomescape.exception.ReservationException;
 
 @Controller
 public class ReservationController {
@@ -54,19 +55,16 @@ public class ReservationController {
     public ResponseEntity<Void> deleteReservation(@PathVariable("id") Long id) {
         boolean removed = reservations.removeIf(reservation -> reservation.hasId(id));
         if (!removed) {
-            throw new ReservationNotFoundException(id);
+            throw new ReservationException(ErrorCode.RESERVATION_NOT_FOUND);
         }
         return ResponseEntity.noContent().build();
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Void> handleInvalidReservation(IllegalArgumentException exception) {
+    @ExceptionHandler(ReservationException.class)
+    public ResponseEntity<Void> handleReservationException(ReservationException exception) {
+        if (exception.getErrorCode() == ErrorCode.RESERVATION_NOT_FOUND) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.badRequest().build();
     }
-
-    @ExceptionHandler(ReservationNotFoundException.class)
-    public ResponseEntity<Void> handleReservationNotFound(ReservationNotFoundException exception) {
-        return ResponseEntity.notFound().build();
-    }
-
 }

@@ -1,5 +1,7 @@
 package roomescape.domain;
 
+import roomescape.exception.ReservationException;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
@@ -28,7 +30,7 @@ class ReservationTest {
     @ValueSource(strings = {" ", "\t"})
     void rejectsMissingOrBlankName(String name) {
         assertThatThrownBy(() -> new Reservation(1L, name, "2023-08-05", "15:40"))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(ReservationException.class)
                 .hasMessage("예약자 이름은 필수입니다.");
     }
 
@@ -37,7 +39,7 @@ class ReservationTest {
     @ValueSource(strings = {" ", "\t"})
     void rejectsMissingOrBlankDate(String date) {
         assertThatThrownBy(() -> new Reservation(1L, "브라운", date, "15:40"))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(ReservationException.class)
                 .hasMessage("예약 날짜는 필수입니다.");
     }
 
@@ -46,7 +48,7 @@ class ReservationTest {
     @ValueSource(strings = {" ", "\t"})
     void rejectsMissingOrBlankTime(String time) {
         assertThatThrownBy(() -> new Reservation(1L, "브라운", "2023-08-05", time))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(ReservationException.class)
                 .hasMessage("예약 시간은 필수입니다.");
     }
 }
