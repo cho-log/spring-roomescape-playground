@@ -1,8 +1,9 @@
-package roomescape.mapper;
+package roomescape.reservation.repository.mapper;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
-import roomescape.reservation.domain.Reservation;
+import roomescape.reservation.dto.Reservation;
+import roomescape.time.dto.Time;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,7 +16,7 @@ public class ReservationRowMapper implements RowMapper<Reservation> {
                 rs.getLong("ID"),
                 rs.getString("NAME"),
                 rs.getString("DATE"),
-                rs.getString("TIME")
+                new Time(rs.getLong("TIME_ID"), rs.getString("TIME_VALUE"))
         );
     }
 }
