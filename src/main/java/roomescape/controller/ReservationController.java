@@ -7,7 +7,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -58,13 +57,5 @@ public class ReservationController {
             throw new ReservationException(ErrorCode.RESERVATION_NOT_FOUND);
         }
         return ResponseEntity.noContent().build();
-    }
-
-    @ExceptionHandler(ReservationException.class)
-    public ResponseEntity<Void> handleReservationException(ReservationException exception) {
-        if (exception.getErrorCode() == ErrorCode.RESERVATION_NOT_FOUND) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.badRequest().build();
     }
 }
