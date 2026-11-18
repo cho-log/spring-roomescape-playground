@@ -1,6 +1,8 @@
 package roomescape.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import roomescape.domain.Reservation;
+import roomescape.dto.ErrorResponse;
 import roomescape.dto.ReservationRequest;
 
 import java.net.URI;
@@ -17,7 +20,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import roomescape.dto.ReservationResponse;
-import roomescape.exception.InvalidReservationException;
 import roomescape.exception.NotFoundReservationException;
 
 @RestController
@@ -26,7 +28,7 @@ public class ReservationController {
     private AtomicLong index = new AtomicLong(1);
 
     @PostMapping("/reservations")
-    public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationRequest request) {
+    public ResponseEntity<ReservationResponse> createReservation(@Valid @RequestBody ReservationRequest request) {
         Reservation reservation = request.toEntity();
         Reservation newReservation = reservation.withId(index.getAndIncrement());
         reservations.add(newReservation);
@@ -44,7 +46,7 @@ public class ReservationController {
     public ReservationResponse getReservation(@PathVariable("id") Long id) {
         return ReservationResponse.from(findReservation(id));
     }
-    
+
     @DeleteMapping("/reservations/{id}")
     public ResponseEntity<Void> deleteReservation(@PathVariable("id") Long id) {
         Reservation reservation = findReservation(id);
@@ -57,9 +59,10 @@ public class ReservationController {
         return ResponseEntity.notFound().build();
     }
 
-    @ExceptionHandler(InvalidReservationException.class)
-    public ResponseEntity<Void> handleInvalid(InvalidReservationException e) {
-        return ResponseEntity.badRequest().build();
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleInvalid(MethodArgumentNotValidException e) {
+        String message = e.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
+        return ResponseEntity.badRequest().body(new ErrorResponse(message));
     }
 
     private Reservation findReservation(Long id) {
