@@ -25,6 +25,14 @@ public class ReservationController {
     List<Reservation> reservations = new ArrayList<>();
     private AtomicLong index = new AtomicLong(1);
 
+    @PostMapping("/reservations")
+    public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationRequest request) {
+        Reservation reservation = request.toEntity();
+        Reservation newReservation = reservation.withId(index.getAndIncrement());
+        reservations.add(newReservation);
+        return ResponseEntity.created(URI.create("/reservations/" + newReservation.getId())).body(ReservationResponse.from(newReservation));
+    }
+
     @GetMapping("/reservations")
     public List<ReservationResponse> getReservations() {
         return reservations.stream()
@@ -36,15 +44,7 @@ public class ReservationController {
     public ReservationResponse getReservation(@PathVariable("id") Long id) {
         return ReservationResponse.from(findReservation(id));
     }
-
-    @PostMapping("/reservations")
-    public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationRequest request) {
-        Reservation reservation = request.toEntity();
-        Reservation newReservation = reservation.withId(index.getAndIncrement());
-        reservations.add(newReservation);
-        return ResponseEntity.created(URI.create("/reservations/" + newReservation.getId())).body(ReservationResponse.from(newReservation));
-    }
-
+    
     @DeleteMapping("/reservations/{id}")
     public ResponseEntity<Void> deleteReservation(@PathVariable("id") Long id) {
         Reservation reservation = findReservation(id);
