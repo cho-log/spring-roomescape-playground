@@ -17,7 +17,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.rest-assured:rest-assured:5.3.1'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf' //이게 그 @GetMapping에서 html을 찾게 해주는거임 //nestjs랑 비슷하게 하는거
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 }
 
 test {
