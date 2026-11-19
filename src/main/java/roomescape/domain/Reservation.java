@@ -1,19 +1,27 @@
 package roomescape.domain;
 
 public class Reservation {
-    private final long id;
+    private final Long id;
     private final String name;
     private final String date;
     private final String time;
 
-    public Reservation(long id, String name, String date, String time) {
+    public Reservation(String name, String date, String time) {
+        this(null, name, date, time);
+    }
+
+    public Reservation(Long id, String name, String date, String time) {
         this.id = id;
         this.name = name;
         this.date = date;
         this.time = time;
     }
 
-    public long getId() {
+    public Reservation withId(Long id) {
+        return new Reservation(id, name, date, time);
+    }
+
+    public Long getId() {
         return id;
     }
     public String getName() {
