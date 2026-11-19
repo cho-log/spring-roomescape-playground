@@ -1,7 +1,10 @@
 package roomescape.repository;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Repository;
 import roomescape.model.Reservation;
@@ -22,15 +25,23 @@ public class ReservationRepository {
         return savedReservation;
     }
 
+    public boolean existsByDateAndTime(LocalDate date, LocalTime time) {
+        return reservations.stream()
+                .anyMatch(r -> r.getDate().equals(date)
+                        && r.getTime().equals(time));
+    }
+
     public List<Reservation> findAll() {
         return reservations;
     }
 
-    public void deleteById(long id) {
-        Reservation reservation = reservations.stream()
+    public Optional<Reservation> findById(long id) {
+        return reservations.stream()
                 .filter(r -> r.getId() == id)
-                .findFirst()
-                .orElseThrow(RuntimeException::new);
+                .findFirst();
+    }
+
+    public void delete(Reservation reservation) {
         reservations.remove(reservation);
     }
 }
