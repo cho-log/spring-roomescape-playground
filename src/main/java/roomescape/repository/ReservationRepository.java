@@ -3,11 +3,8 @@ package roomescape.repository;
 import java.sql.PreparedStatement;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -42,7 +39,7 @@ public class ReservationRepository {
             preparedStatement.setString(2, reservation.getDate().toString());
             preparedStatement.setString(3, reservation.getTime().toString());
             return preparedStatement;
-            }, keyHolder);
+        }, keyHolder);
         long id = keyHolder.getKey().longValue();
         return new Reservation(id, reservation.getName(), reservation.getDate(), reservation.getTime());
     }
@@ -50,7 +47,8 @@ public class ReservationRepository {
 
     public boolean existsByDateAndTime(LocalDate date, LocalTime time) {
         return !jdbcTemplate.query(
-                "SELECT id, name, date, time FROM reservation WHERE date = ? and time = ?", reservationRowMapper, date.toString(),
+                "SELECT id, name, date, time FROM reservation WHERE date = ? and time = ?", reservationRowMapper,
+                date.toString(),
                 time.toString()
         ).isEmpty();
     }
@@ -65,7 +63,7 @@ public class ReservationRepository {
 
     public Optional<Reservation> findById(long findingId) {
         return jdbcTemplate.query(
-                "SELECT id, name, date, time FROM reservation WHERE id = ?", reservationRowMapper, findingId
+                        "SELECT id, name, date, time FROM reservation WHERE id = ?", reservationRowMapper, findingId
                 )
                 .stream()
                 .findFirst();

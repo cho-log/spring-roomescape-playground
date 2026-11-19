@@ -13,7 +13,8 @@ import roomescape.repository.ReservationRepository;
 
 @Service
 public class ReservationService {
-    private  final ReservationRepository reservationRepository;
+    private final ReservationRepository reservationRepository;
+
     public ReservationService(ReservationRepository reservationRepository) {
         this.reservationRepository = reservationRepository;
     }
