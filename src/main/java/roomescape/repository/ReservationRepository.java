@@ -44,13 +44,14 @@ public class ReservationRepository {
         return new Reservation(id, reservation.getName(), reservation.getDate(), reservation.getTime());
     }
 
-
     public boolean existsByDateAndTime(LocalDate date, LocalTime time) {
-        return !jdbcTemplate.query(
-                "SELECT id, name, date, time FROM reservation WHERE date = ? and time = ?", reservationRowMapper,
+        int count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM reservation WHERE date = ? and time = ?",
+                Integer.class,
                 date.toString(),
                 time.toString()
-        ).isEmpty();
+        );
+        return count > 0;
     }
 
     public List<Reservation> findAll() {
