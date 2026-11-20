@@ -17,7 +17,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ReservationNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleReservationNotFound(ReservationNotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                             .body(new ErrorResponse(e.getMessage(), Map.of()));
+                             .body(new ErrorResponse("예약을 찾을 수 없습니다.", Map.of()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
