@@ -1,6 +1,8 @@
 package roomescape.controller;
 
 import jakarta.validation.Valid;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,8 +26,20 @@ import roomescape.exception.NotFoundReservationException;
 
 @RestController
 public class ReservationController {
+    private final JdbcTemplate jdbcTemplate;
     List<Reservation> reservations = new ArrayList<>();
     private AtomicLong index = new AtomicLong(1);
+
+    private final RowMapper<Reservation> rowMapper = (resultSet, rowNum) -> new Reservation(
+            resultSet.getLong("id"),
+            resultSet.getString("name"),
+            resultSet.getString("date"),
+            resultSet.getString("time")
+    );
+
+    public ReservationController(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     @PostMapping("/reservations")
     public ResponseEntity<ReservationResponse> createReservation(@Valid @RequestBody ReservationRequest request) {
@@ -37,7 +51,7 @@ public class ReservationController {
 
     @GetMapping("/reservations")
     public List<ReservationResponse> getReservations() {
-        return reservations.stream()
+        return findAllReservations().stream()
                 .map(ReservationResponse::from)
                 .toList();
     }
@@ -70,6 +84,11 @@ public class ReservationController {
                 .filter(it -> Objects.equals(it.getId(), id))
                 .findFirst()
                 .orElseThrow(() -> new NotFoundReservationException(id));
+    }
+
+    private List<Reservation> findAllReservations() {
+        String sql = "select id, name, date, time from reservation";
+        return jdbcTemplate.query(sql, rowMapper);
     }
 
 }
