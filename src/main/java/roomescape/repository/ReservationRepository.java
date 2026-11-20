@@ -35,18 +35,22 @@ public class ReservationRepository {
         );
     }
 
+    private boolean exitsByDateAndTime(String dateValue, String timeValue) {
+        int count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM reservation where date = ? AND time = ?",
+                Integer.class,
+                dateValue,
+                timeValue
+        );
+
+        return count > 0;
+    }
+
     public synchronized Reservation save(String name, LocalDate date, LocalTime time) {
         String dateValue = date.toString();
         String timeValue = time.toString();
 
-        int count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM reservation where date = ? AND time = ?",
-                Integer.class,
-                date.toString(),
-                time.toString()
-        );
-
-        if (count > 0) {
+        if (exitsByDateAndTime(dateValue, timeValue)) {
             throw new DuplicateReservationException(date, time);
         }
 
