@@ -37,4 +37,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                              .body(new ErrorResponse("입력값이 올바르지 않습니다.", Map.of()));
     }
+
+    @ExceptionHandler(PastReservationException.class)
+    public ResponseEntity<ErrorResponse> handlePastReservationException(PastReservationException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                             .body(new ErrorResponse(
+                                     "지난 날짜와 시간으로 예약할 수 없습니다.", Map.of()
+                             ));
+    }
 }

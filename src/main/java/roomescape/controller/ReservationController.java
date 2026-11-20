@@ -10,9 +10,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import roomescape.domain.Reservation;
 import roomescape.dto.ReservationRequest;
+import roomescape.exception.PastReservationException;
 import roomescape.repository.ReservationRepository;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -32,6 +34,8 @@ public class ReservationController {
     public ResponseEntity<Reservation> createReservation(
             @Valid @RequestBody ReservationRequest reservationRequest
     ) {
+        validateReservationDateTime(reservationRequest);
+
         Reservation createdReservation = reservationRepository.save(
                 reservationRequest.name(),
                 reservationRequest.date(),
@@ -41,6 +45,15 @@ public class ReservationController {
         return ResponseEntity.created(
                 URI.create("/reservations/" + createdReservation.getId())
         ).body(createdReservation);
+    }
+
+    private void validateReservationDateTime(ReservationRequest request) {
+        LocalDateTime reservationDateTime = LocalDateTime.of(request.date(), request.time());
+        LocalDateTime now = LocalDateTime.now();
+
+        if (reservationDateTime.isBefore(now)) {
+            throw new PastReservationException(reservationDateTime);
+        }
     }
 
     @DeleteMapping("/reservations/{id}")
