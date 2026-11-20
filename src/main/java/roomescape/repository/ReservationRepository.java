@@ -30,8 +30,8 @@ public class ReservationRepository {
                 (resultSet, rowNum) -> new Reservation(
                         resultSet.getLong("id"),
                         resultSet.getString("name"),
-                        LocalDate.parse(resultSet.getString("date")),
-                        LocalTime.parse(resultSet.getString("time"))
+                        resultSet.getObject("date", LocalDate.class),
+                        resultSet.getObject("time", LocalTime.class)
                 )
         );
     }
@@ -48,8 +48,8 @@ public class ReservationRepository {
                 );
 
                 ps.setString(1, name);
-                ps.setString(2, date.toString());
-                ps.setString(3, time.toString());
+                ps.setObject(2, date);
+                ps.setObject(3, time);
                 return ps;
             }, keyHolder);
         } catch (DuplicateKeyException e) {
