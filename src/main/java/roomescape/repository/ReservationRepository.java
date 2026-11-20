@@ -1,5 +1,6 @@
 package roomescape.repository;
 
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -35,58 +36,36 @@ public class ReservationRepository {
         );
     }
 
-    private boolean exitsByDateAndTime(String dateValue, String timeValue) {
-        int count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM reservation where date = ? AND time = ?",
-                Integer.class,
-                dateValue,
-                timeValue
-        );
-
-        return count > 0;
-    }
-
-    public synchronized Reservation save(String name, LocalDate date, LocalTime time) {
-        String dateValue = date.toString();
-        String timeValue = time.toString();
-
-        if (exitsByDateAndTime(dateValue, timeValue)) {
-            throw new DuplicateReservationException(date, time);
-        }
-
+    public Reservation save(String name, LocalDate date, LocalTime time) {
         String insertSql = "INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(
-                    insertSql,
-                    new String[]{"id"}
-            );
+        try {
+            jdbcTemplate.update(connection -> {
+                PreparedStatement ps = connection.prepareStatement(
+                        insertSql,
+                        new String[]{"id"}
+                );
 
-            ps.setString(1, name);
-            ps.setString(2, dateValue);
-            ps.setString(3, timeValue);
-
-            return ps;
-        }, keyHolder);
+                ps.setString(1, name);
+                ps.setString(2, date.toString());
+                ps.setString(3, time.toString());
+                return ps;
+            }, keyHolder);
+        } catch (DuplicateKeyException e) {
+            throw new DuplicateReservationException(date, time);
+        }
 
         long id = keyHolder.getKey().longValue();
-
         return new Reservation(id, name, date, time);
     }
 
-    public synchronized void deleteById(long id) {
-        int count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM reservation where id = ?",
-                Integer.class,
-                id
-        );
+    public void deleteById(long id) {
+        String sql = "DELETE FROM reservation WHERE id = ?";
+        int count = jdbcTemplate.update(sql, id);
 
         if (count == 0) {
             throw new ReservationNotFoundException(id);
         }
-
-        String sql = "DELETE FROM reservation WHERE id = ?";
-        jdbcTemplate.update(sql, id);
     }
 }
