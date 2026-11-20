@@ -11,20 +11,17 @@ import roomescape.exception.ReservationNotFoundException;
 import java.sql.PreparedStatement;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Repository
 public class ReservationRepository {
-    private final List<Reservation> reservations = new ArrayList<>();
-    private long nextReservationId = 1;
     private final JdbcTemplate jdbcTemplate;
 
     public ReservationRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public synchronized List<Reservation> findAll() {
+    public List<Reservation> findAll() {
         String sql = "SELECT id, name, date, time FROM reservation";
 
         return jdbcTemplate.query(
@@ -75,12 +72,17 @@ public class ReservationRepository {
     }
 
     public synchronized void deleteById(long id) {
-        boolean removed = reservations.removeIf(
-                reservation -> reservation.hasId(id)
+        int count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM reservation where id = ?",
+                Integer.class,
+                id
         );
 
-        if (!removed) {
+        if (count == 0) {
             throw new ReservationNotFoundException(id);
         }
+
+        String sql = "DELETE FROM reservation WHERE id = ?";
+        jdbcTemplate.update(sql, id);
     }
 }
