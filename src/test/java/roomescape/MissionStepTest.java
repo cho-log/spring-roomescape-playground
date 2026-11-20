@@ -70,4 +70,27 @@ public class MissionStepTest {
                    .statusCode(200)
                    .body("size()", is(0));
     }
+
+    @Test
+    void 사단계() {
+        Map<String, String> params = new HashMap<>();
+        params.put("name", "브라운");
+        params.put("date", "");
+        params.put("time", "");
+
+        // 필요한 인자가 없는 경우
+        RestAssured.given().log().all()
+                   .contentType(ContentType.JSON)
+                   .body(params)
+                   .when().post("/reservations")
+                   .then().log().all()
+                   .statusCode(400);
+
+        // 삭제할 예약이 없는 경우
+        RestAssured.given().log().all()
+                   .when().delete("/reservations/1")
+                   .then().log().all()
+                   .statusCode(404);
+    }
+
 }
