@@ -15,13 +15,13 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(ReservationNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleReservationNotFound(ReservationNotFoundException e) {
+    public ResponseEntity<ErrorResponse> handleReservationNotFoundException(ReservationNotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                              .body(new ErrorResponse("예약을 찾을 수 없습니다.", Map.of()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e) {
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         Map<String, String> errors = new HashMap<>();
 
         for (FieldError fieldError : e.getBindingResult().getFieldErrors()) {
