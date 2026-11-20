@@ -8,20 +8,19 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Repository
 public class ReservationRepository {
     private final List<Reservation> reservations = new ArrayList<>();
-    private final AtomicLong nextReservationId = new AtomicLong(1);
+    private long nextReservationId = 1;
 
-    public List<Reservation> findAll() {
+    public synchronized List<Reservation> findAll() {
         return List.copyOf(reservations);
     }
 
-    public Reservation save(String name, LocalDate date, LocalTime time) {
+    public synchronized Reservation save(String name, LocalDate date, LocalTime time) {
         Reservation createdReservation = new Reservation(
-                nextReservationId.getAndIncrement(),
+                nextReservationId++,
                 name,
                 date,
                 time
@@ -31,7 +30,7 @@ public class ReservationRepository {
         return createdReservation;
     }
 
-    public void deleteById(long id) {
+    public synchronized void deleteById(long id) {
         boolean removed = reservations.removeIf(
                 reservation -> reservation.hasId(id)
         );
