@@ -2,6 +2,7 @@ package roomescape.repository;
 
 import org.springframework.stereotype.Repository;
 import roomescape.domain.Reservation;
+import roomescape.exception.DuplicateReservationException;
 import roomescape.exception.ReservationNotFoundException;
 
 import java.time.LocalDate;
@@ -19,6 +20,16 @@ public class ReservationRepository {
     }
 
     public synchronized Reservation save(String name, LocalDate date, LocalTime time) {
+        boolean alreadyReserved = reservations.stream()
+                                              .anyMatch(reservation ->
+                                                                reservation.getDate().equals(date)
+                                                                        && reservation.getTime().equals(time)
+                                              );
+
+        if (alreadyReserved) {
+            throw new DuplicateReservationException(date, time);
+        }
+
         Reservation createdReservation = new Reservation(
                 nextReservationId++,
                 name,

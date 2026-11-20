@@ -45,4 +45,12 @@ public class GlobalExceptionHandler {
                                      "지난 날짜와 시간으로 예약할 수 없습니다.", Map.of()
                              ));
     }
+
+    @ExceptionHandler(DuplicateReservationException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateReservationException(DuplicateReservationException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                             .body(new ErrorResponse(
+                                     "이미 예약된 날짜와 시간입니다", Map.of()
+                             ));
+    }
 }
