@@ -63,6 +63,34 @@ public class ReservationValidationTest {
                 .body("message", is("시간을 입력해야 합니다."));
     }
 
+    @Test
+    void 같은_날짜와_시간에_예약하면_예외가_발생한다() {
+        postReservation("브라운", "2026-11-21", "10:00")
+                .statusCode(201);
+
+        postReservation("핑크", "2026-11-21", "10:00")
+                .statusCode(409)
+                .body("message", is("이미 예약된 시간입니다."));
+    }
+
+    @Test
+    void 날짜가_같아도_시간이_다르면_예약할_수_있다() {
+        postReservation("브라운", "2026-11-21", "10:00")
+                .statusCode(201);
+
+        postReservation("핑크", "2026-11-21", "11:00")
+                .statusCode(201);
+    }
+
+    @Test
+    void 시간이_같아도_날짜가_다르면_예약할_수_있다() {
+        postReservation("브라운", "2026-11-21", "10:00")
+                .statusCode(201);
+
+        postReservation("핑크", "2026-11-22", "10:00")
+                .statusCode(201);
+    }
+
     private ValidatableResponse postReservation(String name, String date, String time) {
         Map<String, String> params = new HashMap<>();
         params.put("name", name);
