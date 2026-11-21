@@ -1,6 +1,7 @@
 package roomescape.controller;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +29,12 @@ class ReservationExceptionHandlerTest {
                 .hasCauseInstanceOf(IllegalArgumentException.class);
     }
 
+    @Test
+    void doesNotTreatDatabaseFailuresAsClientErrors() {
+        assertThatThrownBy(() -> mvc.perform(get("/probe/database")))
+                .hasCauseInstanceOf(CannotGetJdbcConnectionException.class);
+    }
+
     @RestController
     static class ProbeController {
         @GetMapping("/probe/invalid")
@@ -35,6 +42,9 @@ class ReservationExceptionHandlerTest {
 
         @GetMapping("/probe/missing")
         public void missing() { throw new ReservationException(ErrorCode.RESERVATION_NOT_FOUND); }
+
+        @GetMapping("/probe/database")
+        public void database() { throw new CannotGetJdbcConnectionException("connection unavailable"); }
 
         @GetMapping("/probe/internal")
         public void internal() { throw new IllegalArgumentException("internal failure"); }
