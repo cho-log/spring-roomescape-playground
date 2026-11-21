@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function fetchReservations() {
   requestRead()
       .then(renderReservations)
-      .catch(error => console.error('Error fetching reservations:', error));
+      .catch(error => alert(error.message));
 }
 
 function renderReservations(data) {
@@ -41,7 +41,7 @@ function createActionButton(label, className, eventListener) {
 
 function addEditableRow() {
 
-  if (isEditing) return;  // 이미 편집 중인 경우 추가하지 않음
+  if (isEditing) return;
 
   const tableBody = document.getElementById('reservation-table-body');
   const row = tableBody.insertRow();
@@ -89,11 +89,13 @@ function saveRow(event) {
     time: inputs[2].value
   };
 
-  requestCreate(reservation)
+  const saveButton = event.target;
+  if (saveButton.disabled) return;
+  saveButton.disabled = true;
+  return requestCreate(reservation)
       .then(data => updateRowWithReservationData(row, data))
-      .catch(error => console.error('Error:', error));
-
-  isEditing = false;  // isEditing 값을 false로 설정
+      .catch(error => alert(error.message))
+      .finally(() => { saveButton.disabled = false; });
 }
 
 function updateRowWithReservationData(row, data) {
@@ -103,13 +105,11 @@ function updateRowWithReservationData(row, data) {
   cells[2].textContent = data.date;
   cells[3].textContent = data.time;
 
-  // 버튼 변경: 삭제 버튼으로 변경
   cells[4].innerHTML = '';
   cells[4].appendChild(createActionButton('삭제', 'btn-danger', deleteRow));
 
   isEditing = false;
 
-  // Remove the editable input fields and just show the saved data
   for (let i = 1; i <= 3; i++) {
     const inputElement = cells[i].querySelector('input');
     if (inputElement) {
@@ -122,9 +122,9 @@ function deleteRow(event) {
   const row = event.target.closest('tr');
   const reservationId = row.cells[0].textContent;
 
-  requestDelete(reservationId)
+  return requestDelete(reservationId)
       .then(() => row.remove())
-      .catch(error => console.error('Error:', error));
+      .catch(error => alert(error.message));
 }
 
 function requestCreate(reservation) {
@@ -137,7 +137,7 @@ function requestCreate(reservation) {
   return fetch(RESERVATION_API_ENDPOINT, requestOptions)
       .then(response => {
         if (response.status === 201) return response.json();
-        throw new Error('Create failed');
+        return rejectResponse(response);
       });
 }
 
@@ -145,7 +145,7 @@ function requestRead() {
   return fetch(RESERVATION_API_ENDPOINT)
       .then(response => {
         if (response.status === 200) return response.json();
-        throw new Error('Read failed');
+        return rejectResponse(response);
       });
 }
 
@@ -156,6 +156,18 @@ function requestDelete(id) {
 
   return fetch(`${RESERVATION_API_ENDPOINT}/${id}`, requestOptions)
       .then(response => {
-        if (response.status !== 204) throw new Error('Delete failed');
+        if (response.status !== 204) return rejectResponse(response);
       });
+}
+async function rejectResponse(response) {
+  let message = '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+  try {
+    const error = await response.json();
+    if (typeof error.message === 'string' && error.message) {
+      message = error.message;
+    }
+  } catch {
+    // JSON 본문이 없는 오류도 기본 안내 메시지로 처리한다.
+  }
+  throw new Error(message);
 }
