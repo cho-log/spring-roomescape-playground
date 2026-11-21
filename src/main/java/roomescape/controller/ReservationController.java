@@ -1,9 +1,7 @@
 package roomescape.controller;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import roomescape.domain.Reservation;
+import roomescape.domain.ReservationDetails;
 import roomescape.dto.ReservationRequest;
 import roomescape.dto.ReservationResponse;
 import roomescape.exception.ErrorCode;
@@ -21,10 +20,6 @@ import roomescape.repository.ReservationRepository;
 
 @Controller
 public class ReservationController {
-    private final List<Reservation> reservations = new ArrayList<>();
-
-    private final AtomicLong index = new AtomicLong(1);
-
     private final ReservationRepository reservationRepository;
 
     public ReservationController(ReservationRepository reservationRepository) {
@@ -46,9 +41,8 @@ public class ReservationController {
 
     @PostMapping("/reservations")
     public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationRequest request) {
-        Reservation reservation = new Reservation(index.getAndIncrement(),
-                request.name(), request.date(), request.time());
-        reservations.add(reservation);
+        ReservationDetails details = new ReservationDetails(request.name(), request.date(), request.time());
+        Reservation reservation = reservationRepository.save(details);
         return ResponseEntity.created(URI.create("/reservations/" + reservation.getId()))
                 .body(ReservationResponse.from(reservation));
     }
@@ -56,8 +50,8 @@ public class ReservationController {
 
     @DeleteMapping("/reservations/{id}")
     public ResponseEntity<Void> deleteReservation(@PathVariable("id") Long id) {
-        boolean removed = reservations.removeIf(reservation -> reservation.hasId(id));
-        if (!removed) {
+        int deletedCount = reservationRepository.deleteById(id);
+        if (deletedCount == 0) {
             throw new ReservationException(ErrorCode.RESERVATION_NOT_FOUND);
         }
         return ResponseEntity.noContent().build();
