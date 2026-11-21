@@ -22,4 +22,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(new ErrorResponse(message));
     }
 
+    @ExceptionHandler(DuplicateReservationException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicate(DuplicateReservationException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(e.getMessage()));
+    }
+
 }

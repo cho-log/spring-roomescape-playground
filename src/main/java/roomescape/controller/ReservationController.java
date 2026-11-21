@@ -18,6 +18,7 @@ import roomescape.dto.ReservationRequest;
 import java.net.URI;
 import java.util.List;
 import roomescape.dto.ReservationResponse;
+import roomescape.exception.DuplicateReservationException;
 import roomescape.exception.NotFoundReservationException;
 
 @RestController
@@ -30,6 +31,9 @@ public class ReservationController {
 
     @PostMapping("/reservations")
     public ResponseEntity<ReservationResponse> createReservation(@Valid @RequestBody ReservationRequest request) {
+        if (reservationDao.existsByDateAndTime(request.date(), request.time())) {
+            throw new DuplicateReservationException();
+        }
         Reservation reservation = request.toEntity();
         Long id = reservationDao.save(reservation);
         Reservation newReservation = reservation.withId(id);
