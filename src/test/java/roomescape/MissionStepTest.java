@@ -1,9 +1,13 @@
 package roomescape;
 
 import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,12 +16,16 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class MissionStepTest {
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Test
     void 일단계() {
@@ -210,5 +218,15 @@ public class MissionStepTest {
         RestAssured.given().contentType(ContentType.JSON).body("{broken")
                 .when().post("/reservations")
                 .then().statusCode(400).body("code", is("INVALID_REQUEST"));
+    }
+
+    @Test
+    void 오단계() throws SQLException {
+        try (Connection connection = jdbcTemplate.getDataSource().getConnection();
+             ResultSet tables = connection.getMetaData().getTables(null, null, "RESERVATION", null)) {
+            assertThat(connection).isNotNull();
+            assertThat(connection.getCatalog()).isEqualTo("DATABASE");
+            assertThat(tables.next()).isTrue();
+        }
     }
 }
