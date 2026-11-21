@@ -17,6 +17,7 @@ import roomescape.dto.ReservationRequest;
 import roomescape.dto.ReservationResponse;
 import roomescape.exception.ErrorCode;
 import roomescape.exception.ReservationException;
+import roomescape.repository.ReservationRepository;
 
 @Controller
 public class ReservationController {
@@ -24,7 +25,10 @@ public class ReservationController {
 
     private final AtomicLong index = new AtomicLong(1);
 
-    public ReservationController() {
+    private final ReservationRepository reservationRepository;
+
+    public ReservationController(ReservationRepository reservationRepository) {
+        this.reservationRepository = reservationRepository;
     }
 
     @GetMapping("/reservation")
@@ -36,7 +40,7 @@ public class ReservationController {
     @GetMapping("/reservations")
     @ResponseBody
     public List<ReservationResponse> getReservations() {
-        return reservations.stream().map(ReservationResponse::from).toList();
+        return reservationRepository.findAll().stream().map(ReservationResponse::from).toList();
     }
 
 
