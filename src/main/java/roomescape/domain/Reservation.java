@@ -1,17 +1,31 @@
 package roomescape.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import roomescape.exception.InvalidReservationException;
+
 public class Reservation {
 
-    private final Long id; //atomic 쓰려면 long으로 해야함
+    private final Long id;
     private final String name;
-    private final String date;
-    private final String time;
+    private final LocalDate date;
+    @JsonFormat(pattern = "HH:mm")
+    private final LocalTime time;
 
-    public Reservation(Long id, String name, String date, String time) {
+
+    public Reservation(Long id, String name, LocalDate date, LocalTime time) {
+        validate(name, date, time);
         this.name = name;
         this.date = date;
         this.time = time;
         this.id = id;
+    }
+
+    private void validate(String name, LocalDate date, LocalTime time) {
+        if (name == null || name.isBlank() || date == null || time == null) {
+            throw new InvalidReservationException("예약 정보(name, date, time)는 비어 있을 수 없습니다.");
+        }
     }
 
     public Long getId() {
@@ -22,14 +36,11 @@ public class Reservation {
         return name;
     }
 
-    public String getDate() {
+    public LocalDate getDate() {
         return date;
     }
 
-    public String getTime() {
+    public LocalTime getTime() {
         return time;
     }
-    //public void setId(Long id) {
-    //    this.id = id;
-    //}
 }
