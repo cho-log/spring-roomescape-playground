@@ -28,7 +28,7 @@
     - 조회: `reservation` 테이블의 모든 예약을 응답한다.
     - 추가: 예약을 저장하고, 생성된 `id`를 포함해 `201 Created`와 `Location` 헤더로 응답한다.
     - 삭제: 해당 `id`의 예약을 삭제하고 `204 No Content`로 응답한다. 삭제할 예약이 없으면 `404 Not Found`로 응답한다.
-  
+
 ### 파일 구조
 ```
 src
@@ -46,8 +46,10 @@ src
 │   │       │   └── NotFoundReservationException.java
 │   │       ├── model
 │   │       │   └── Reservation.java
-│   │       └── repository
-│   │           └── ReservationRepository.java
+│   │       ├── repository
+│   │       │   └── ReservationRepository.java
+│   │       └── service
+│   │           └── ReservationService.java
 │   └── resources
 │       ├── application.properties
 │       ├── schema.sql
@@ -58,3 +60,4 @@ src
         └── roomescape
             └── MissionStepTest.java
 ```
+ 
