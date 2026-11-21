@@ -23,7 +23,7 @@ public class ReservationController {
     
 
     // Reservation
-    //@GetMapping("/reservation")
+    @GetMapping("/reservation")
     public String reservation(){
         return "reservation";
     }
@@ -37,7 +37,7 @@ public class ReservationController {
         return reservations;
     }
 
-    /*
+/*
     //m3,  예약 추가 api
     @PostMapping("/reservations")
     @ResponseBody
@@ -56,9 +56,10 @@ public class ReservationController {
                 .created(URI.create("/reservations/"+reservation.getId()))
                 .body(reservation);
     }
-
+*/
+    /*
     //m3 예약 취소 api
-    @DeleteMapping("/reservations/{id}")
+    @DeleteMapping("/reservations/{id}") */
     public ResponseEntity<Void> deleteReservation(@PathVariable Long id){
         boolean removed=reservations.removeIf(
                 reservation ->
@@ -70,7 +71,7 @@ public class ReservationController {
 
         return ResponseEntity.noContent().build();
     }
-    */
+
 
     //m6 데이터 조회하기-controller 연결
     private final ReservationDao reservationDao;
@@ -78,13 +79,13 @@ public class ReservationController {
     public ReservationController(ReservationDao reservationDao) {
         this.reservationDao = reservationDao;
     }
-/*
+
     @GetMapping("/reservations")
     @ResponseBody
     public List<Reservation> getReservations() {
         return reservationDao.findAll();
     }
-*/
+
 
     //m7
     @PostMapping("/reservations")

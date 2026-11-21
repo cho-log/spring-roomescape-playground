@@ -1,4 +1,4 @@
 package roomescape.controller;
 
-public class BadRequestReservationException extends Throwable {
+public class BadRequestReservationException extends RuntimeException {
 }

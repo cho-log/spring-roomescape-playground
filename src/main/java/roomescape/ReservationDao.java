@@ -21,7 +21,7 @@ public class ReservationDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    /*m6
+    //m6
     public List<Reservation> findAll(){
         String sql = "SELECT ID, name, date, time FROM reservation";
 
@@ -33,7 +33,7 @@ public class ReservationDao {
                         rs.getString("time")
                 ));
     }
-    */
+
     public Reservation save(Reservation reservation){
         String sql="INSERT INTO reservation (name, date, time)"+
                 "Values (?,?,?)";

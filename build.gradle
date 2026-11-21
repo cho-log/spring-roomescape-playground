@@ -32,7 +32,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
 
-    //gradle 의존성 추가
+    //gradle 의존성 추가 (jdbc, h2 의존성)
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     runtimeOnly 'com.h2database:h2'
 }
