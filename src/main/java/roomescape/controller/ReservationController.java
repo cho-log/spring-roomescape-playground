@@ -15,24 +15,24 @@ import roomescape.dto.ReservationDto;
 import roomescape.exception.NotFoundReservationException;
 import roomescape.model.Reservation;
 import roomescape.repository.ReservationRepository;
+import roomescape.service.ReservationService;
 
 @RestController
 @RequestMapping("/reservations")
 public class ReservationController {
-    private final ReservationRepository reservationRepository;
-
-    public ReservationController(ReservationRepository reservationRepository) {
-        this.reservationRepository = reservationRepository;
+    private final ReservationService reservationService;
+    public ReservationController(ReservationService reservationService) {
+        this.reservationService = reservationService;
     }
 
     @GetMapping
     public List<Reservation> getReservations() {
-        return reservationRepository.selectAll();
+        return reservationService.findAll();
     }
 
     @PostMapping
     public ResponseEntity<Reservation> create(@Valid @RequestBody ReservationDto reservationDto) {
-        Reservation reservation = reservationRepository.insert(
+        Reservation reservation = reservationService.create(
                 reservationDto.getName(),
                 reservationDto.getDate(),
                 reservationDto.getTime()
@@ -42,10 +42,7 @@ public class ReservationController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable long id) {
-        int removed = reservationRepository.delete(id);
-        if (removed == 0) {
-            throw new NotFoundReservationException();
-        }
+        reservationService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
