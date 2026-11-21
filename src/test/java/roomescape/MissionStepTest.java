@@ -243,4 +243,51 @@ public class MissionStepTest {
                 .body("[0].date", is("2023-08-05"))
                 .body("[0].time", is("15:40"));
     }
+
+    @Test
+    void 칠단계() {
+        Map<String, String> params = Map.of("name", "브라운", "date", "2023-08-05", "time", "10:00");
+        RestAssured.given().contentType(ContentType.JSON).body(params)
+                .when().post("/reservations")
+                .then().statusCode(201)
+                .header("Location", "/reservations/1")
+                .body("id", is(1));
+
+        assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM reservation", Integer.class)).isEqualTo(1);
+        assertThat(jdbcTemplate.queryForObject("SELECT name FROM reservation WHERE id = ?", String.class, 1L))
+                .isEqualTo("브라운");
+
+        RestAssured.given().when().delete("/reservations/1")
+                .then().statusCode(204);
+        assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM reservation", Integer.class)).isZero();
+    }
+
+    @Test
+    void DB에_기존_예약이_있으면_새로_생성한_id를_응답한다() {
+        jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)",
+                "기존 예약", "2023-08-05", "10:00");
+        Map<String, String> params = Map.of("name", "새 예약", "date", "2023-08-05", "time", "15:40");
+
+        RestAssured.given().contentType(ContentType.JSON).body(params)
+                .when().post("/reservations")
+                .then().statusCode(201)
+                .header("Location", "/reservations/2")
+                .body("id", is(2));
+        assertThat(jdbcTemplate.queryForObject("SELECT name FROM reservation WHERE id = ?", String.class, 2L))
+                .isEqualTo("새 예약");
+        assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM reservation", Integer.class)).isEqualTo(2);
+    }
+
+    @Test
+    void 잘못된_예약_요청은_DB에_저장되지_않는다() {
+        RestAssured.given().contentType(ContentType.JSON)
+                .body(Map.of("name", "", "date", "2023-08-05", "time", "15:40"))
+                .when().post("/reservations")
+                .then().statusCode(400).body("code", is("MISSING_NAME"));
+        RestAssured.given().contentType(ContentType.JSON)
+                .body(Map.of("name", "브라운", "date", "2026-02-30", "time", "15:40"))
+                .when().post("/reservations")
+                .then().statusCode(400).body("code", is("INVALID_DATE"));
+        assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM reservation", Integer.class)).isZero();
+    }
 }
