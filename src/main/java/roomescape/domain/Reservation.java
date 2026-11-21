@@ -1,19 +1,23 @@
 package roomescape.domain;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Objects;
+
 public class Reservation {
     private final Long id;
-    private final String name;
-    private final String date;
-    private final String time;
+    private final ReservationDetails details;
 
     public Reservation(Long id, String name, String date, String time) {
+        this(id, new ReservationDetails(name, date, time));
+    }
+
+    public Reservation(Long id, ReservationDetails details) {
         if (id == null) {
             throw new IllegalArgumentException("예약 id는 필수입니다.");
         }
         this.id = id;
-        this.name = name;
-        this.date = date;
-        this.time = time;
+        this.details = Objects.requireNonNull(details, "예약 내용은 필수입니다.");
     }
 
     public boolean hasId(Long id) {
@@ -25,14 +29,14 @@ public class Reservation {
     }
 
     public String getName() {
-        return name;
+        return details.getName();
     }
 
-    public String getDate() {
-        return date;
+    public LocalDate getDate() {
+        return details.getDate();
     }
 
-    public String getTime() {
-        return time;
+    public LocalTime getTime() {
+        return details.getTime();
     }
 }
