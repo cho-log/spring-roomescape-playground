@@ -1,6 +1,5 @@
 package roomescape.exception;
 
-import java.util.logging.ErrorManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
