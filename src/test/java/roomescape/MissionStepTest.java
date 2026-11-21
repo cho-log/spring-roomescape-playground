@@ -229,4 +229,18 @@ public class MissionStepTest {
             assertThat(tables.next()).isTrue();
         }
     }
+
+    @Test
+    void 육단계() {
+        jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)",
+                "브라운", "2023-08-05", "15:40");
+        Integer count = jdbcTemplate.queryForObject("SELECT count(*) FROM reservation", Integer.class);
+
+        RestAssured.given().when().get("/reservations")
+                .then().statusCode(200)
+                .body("size()", is(count))
+                .body("[0].name", is("브라운"))
+                .body("[0].date", is("2023-08-05"))
+                .body("[0].time", is("15:40"));
+    }
 }
