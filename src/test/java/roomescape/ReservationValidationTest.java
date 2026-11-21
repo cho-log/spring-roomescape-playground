@@ -91,6 +91,19 @@ public class ReservationValidationTest {
                 .statusCode(201);
     }
 
+    @Test
+    void 이름이_10자_초과면_예외가_발생한다() {
+        postReservation("이름열자넘으면안됩니다", "2026-11-21", "10:00")
+                .statusCode(400)
+                .body("message", is("이름은 10자 이내여야 합니다."));
+    }
+
+    @Test
+    void 이름이_10자_이내면_정상적으로_예약된다() {
+        postReservation("이름열자넘으면안돼요", "2026-11-21", "10:00")
+                .statusCode(201);
+    }
+
     private ValidatableResponse postReservation(String name, String date, String time) {
         Map<String, String> params = new HashMap<>();
         params.put("name", name);
