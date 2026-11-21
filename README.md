@@ -1,4 +1,4 @@
-# SpringMVC 
+# Spring 방탈출 예약 관리
 
 ## 1단계 - 홈 화면
 - `localhost:8080` 요청 시 어드민 메인 페이지 응답
@@ -76,3 +76,19 @@
   - 예약 추가 시 필요한 인자값이 비어있는 경우 `400 Bad Request` 응답
   - 삭제할 예약을 찾을 수 없는 경우 `404 Not Found` 응답
   - 조회할 예약을 찾을 수 없는 경우 `404 Not Found` 응답
+
+## 5단계 - 데이터베이스 적용하기
+- H2 데이터베이스 연동
+  - `spring-boot-starter-jdbc`, `h2` 의존성 추가
+  - `application.properties`에 H2 콘솔 활성화, 데이터베이스 URL 설정
+  - `schema.sql`로 애플리케이션 실행 시 `reservation` 테이블 생성
+
+## 6단계 - 데이터 조회하기
+- 예약 목록 조회 시 기존 List 대신 데이터베이스에서 조회
+- `JdbcTemplate`과 `RowMapper`를 사용해 조회 결과를 `Reservation` 객체로 변환
+
+## 7단계 - 데이터 추가 / 삭제하기
+- 예약 추가 / 삭제 시 기존 List 대신 데이터베이스 사용
+  - 예약 추가 시 `KeyHolder`로 데이터베이스가 생성한 id를 받아 응답에 사용
+  - 예약 삭제 시 삭제된 행이 없으면 `404 Not Found` 응답
+- 데이터베이스 접근 로직을 `ReservationDao`로 분리
