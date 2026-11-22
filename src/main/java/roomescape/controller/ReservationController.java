@@ -12,15 +12,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import roomescape.dto.ReservationDto;
-import roomescape.exception.NotFoundReservationException;
 import roomescape.model.Reservation;
-import roomescape.repository.ReservationRepository;
 import roomescape.service.ReservationService;
 
 @RestController
 @RequestMapping("/reservations")
 public class ReservationController {
     private final ReservationService reservationService;
+
     public ReservationController(ReservationService reservationService) {
         this.reservationService = reservationService;
     }
@@ -33,9 +32,9 @@ public class ReservationController {
     @PostMapping
     public ResponseEntity<Reservation> create(@Valid @RequestBody ReservationDto reservationDto) {
         Reservation reservation = reservationService.create(
-                reservationDto.getName(),
-                reservationDto.getDate(),
-                reservationDto.getTime()
+                reservationDto.name(),
+                reservationDto.date(),
+                reservationDto.time()
         );
         return ResponseEntity.created(URI.create("/reservations/" + reservation.getId())).body(reservation);
     }
