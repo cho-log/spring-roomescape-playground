@@ -19,8 +19,8 @@ public class ReservationRepository {
     private final RowMapper<Reservation> reservationRowMapper = (resultSet, rowNum) -> new Reservation(
             resultSet.getLong("id"),
             resultSet.getString("name"),
-            LocalDate.parse(resultSet.getString("date")),
-            LocalTime.parse(resultSet.getString("time"))
+            resultSet.getObject("date", LocalDate.class),
+            resultSet.getObject("time", LocalTime.class)
     );
 
     public ReservationRepository(JdbcTemplate jdbcTemplate) {
@@ -36,8 +36,8 @@ public class ReservationRepository {
                     new String[]{"id"}
             );
             preparedStatement.setString(1, reservation.getName());
-            preparedStatement.setString(2, reservation.getDate().toString());
-            preparedStatement.setString(3, reservation.getTime().toString());
+            preparedStatement.setObject(2, reservation.getDate());
+            preparedStatement.setObject(3, reservation.getTime());
             return preparedStatement;
         }, keyHolder);
         long id = keyHolder.getKey().longValue();
@@ -48,8 +48,8 @@ public class ReservationRepository {
         int count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM reservation WHERE date = ? and time = ?",
                 Integer.class,
-                date.toString(),
-                time.toString()
+                date,
+                time
         );
         return count > 0;
     }
