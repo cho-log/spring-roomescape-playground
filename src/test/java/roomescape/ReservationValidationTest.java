@@ -104,6 +104,20 @@ public class ReservationValidationTest {
                 .statusCode(201);
     }
 
+    @Test
+    void 이름에_숫자가_있고_10자를_넘으면_숫자_검증_메시지가_먼저_나온다() {
+        postReservation("브라운1234567890", "2026-11-21", "10:00")
+                .statusCode(400)
+                .body("message", is("이름에 숫자를 포함할 수 없습니다."));
+    }
+
+    @Test
+    void 이름이_공백으로만_10자를_넘으면_입력_요청_메시지가_나온다() {
+        postReservation("           ", "2026-11-21", "10:00")
+                .statusCode(400)
+                .body("message", is("이름을 입력해야 합니다."));
+    }
+
     private ValidatableResponse postReservation(String name, String date, String time) {
         Map<String, String> params = new HashMap<>();
         params.put("name", name);
