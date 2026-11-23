@@ -118,6 +118,20 @@ public class ReservationValidationTest {
                 .body("message", is("이름을 입력해야 합니다."));
     }
 
+    @Test
+    void 존재하지_않는_날짜면_예외가_발생한다() {
+        postReservation("브라운", "2023-13-45", "10:00")
+                .statusCode(400)
+                .body("message", is("존재하지 않는 날짜 또는 시간입니다."));
+    }
+
+    @Test
+    void 존재하지_않는_시간이면_예외가_발생한다() {
+        postReservation("브라운", "2023-08-05", "25:00")
+                .statusCode(400)
+                .body("message", is("존재하지 않는 날짜 또는 시간입니다."));
+    }
+
     private ValidatableResponse postReservation(String name, String date, String time) {
         Map<String, String> params = new HashMap<>();
         params.put("name", name);
