@@ -26,7 +26,7 @@ public class ReservationDao {
     }
 
     public Long save(Reservation reservation) {
-        String sql = "insert into reservation (name, date, time) values (?, ?, ?)";
+        String sql = "INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
@@ -41,23 +41,23 @@ public class ReservationDao {
     }
 
     public Optional<Reservation> findById(Long id) {
-        String sql = "select id, name, date, time from reservation where id = ?";
+        String sql = "SELECT id, name, date, time FROM reservation WHERE id = ?";
         return jdbcTemplate.query(sql, rowMapper, id).stream()
                 .findFirst();
     }
 
     public List<Reservation> findAll() {
-        String sql = "select id, name, date, time from reservation";
+        String sql = "SELECT id, name, date, time FROM reservation";
         return jdbcTemplate.query(sql, rowMapper);
     }
 
     public int deleteById(Long id) {
-        String sql = "delete from reservation where id = ?";
+        String sql = "DELETE FROM reservation WHERE id = ?";
         return jdbcTemplate.update(sql, id);
     }
 
     public boolean existsByDateAndTime(String date, String time) {
-        String sql = "select count(*) from reservation where date = ? and time = ?";
+        String sql = "SELECT COUNT(*) FROM reservation WHERE date = ? AND time = ?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, date, time);
         return count > 0;
     }
