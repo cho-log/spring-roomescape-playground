@@ -28,6 +28,10 @@ public class Reservation {
         }
     }
 
+    public Reservation withId(Long id) {
+        return new Reservation(id, name, date, time);
+    }
+
     public Long getId() {
         return id;
     }

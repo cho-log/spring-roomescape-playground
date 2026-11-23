@@ -47,7 +47,7 @@ public class ReservationRepository {
             return ps;
         }, keyHolder);
         Long generatedId = keyHolder.getKey().longValue();
-        return new Reservation(generatedId, reservation.getName(), reservation.getDate(), reservation.getTime());
+        return reservation.withId(generatedId);
 
     }
 
