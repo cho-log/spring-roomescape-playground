@@ -28,8 +28,8 @@ public class ReservationRepository {
         return jdbcTemplate.query(sql, (resultSet, rowNum) -> new Reservation(
                 resultSet.getLong("id"),
                 resultSet.getString("name"),
-                LocalDate.parse(resultSet.getString("date")),
-                LocalTime.parse(resultSet.getString("time"))
+                resultSet.getObject("date", LocalDate.class),
+                resultSet.getObject("time", LocalTime.class)
         ));
     }
 
@@ -42,8 +42,8 @@ public class ReservationRepository {
         jdbcTemplate.update(connection-> {
             var ps = connection.prepareStatement(sql, new String[]{"id"});
             ps.setString(1, reservation.getName());
-            ps.setString(2, reservation.getDate().toString());
-            ps.setString(3, reservation.getTime().toString());
+            ps.setObject(2, reservation.getDate());
+            ps.setObject(3, reservation.getTime());
             return ps;
         }, keyHolder);
         Long generatedId = keyHolder.getKey().longValue();
