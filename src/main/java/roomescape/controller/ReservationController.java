@@ -28,10 +28,10 @@ public class ReservationController {
 
     @PostMapping("/reservations")
     public ResponseEntity<ReservationResponse> createReservation(@Valid @RequestBody ReservationRequest request) {
-        if (reservationDao.existsByDateAndTime(request.date(), request.time())) {
+        Reservation reservation = request.toEntity();
+        if (reservationDao.existsByDateAndTime(reservation.getDate(), reservation.getTime())) {
             throw new DuplicateReservationException();
         }
-        Reservation reservation = request.toEntity();
         Long id = reservationDao.save(reservation);
         Reservation newReservation = reservation.withId(id);
         return ResponseEntity.created(URI.create("/reservations/" + newReservation.getId())).body(ReservationResponse.from(newReservation));

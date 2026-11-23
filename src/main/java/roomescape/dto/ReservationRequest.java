@@ -4,6 +4,8 @@ import jakarta.validation.GroupSequence;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import roomescape.domain.Reservation;
 
 @GroupSequence({ReservationRequest.class, ReservationRequest.PatternCheck.class, ReservationRequest.SizeCheck.class})
@@ -26,6 +28,6 @@ public record ReservationRequest(
     }
 
     public Reservation toEntity() {
-        return new Reservation(name, date, time);
+        return new Reservation(name, LocalDate.parse(date), LocalTime.parse(time));
     }
 }

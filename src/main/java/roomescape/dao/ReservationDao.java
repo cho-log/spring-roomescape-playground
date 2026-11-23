@@ -1,6 +1,8 @@
 package roomescape.dao;
 
 import java.sql.PreparedStatement;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -17,8 +19,8 @@ public class ReservationDao {
     private final RowMapper<Reservation> rowMapper = (resultSet, rowNum) -> new Reservation(
             resultSet.getLong("id"),
             resultSet.getString("name"),
-            resultSet.getString("date"),
-            resultSet.getString("time")
+            LocalDate.parse(resultSet.getString("date")),
+            LocalTime.parse(resultSet.getString("time"))
     );
 
     public ReservationDao(JdbcTemplate jdbcTemplate) {
@@ -32,8 +34,8 @@ public class ReservationDao {
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
             ps.setString(1, reservation.getName());
-            ps.setString(2, reservation.getDate());
-            ps.setString(3, reservation.getTime());
+            ps.setString(2, reservation.getDate().toString());
+            ps.setString(3, reservation.getTime().toString());
             return ps;
         }, keyHolder);
 
@@ -56,9 +58,9 @@ public class ReservationDao {
         return jdbcTemplate.update(sql, id);
     }
 
-    public boolean existsByDateAndTime(String date, String time) {
+    public boolean existsByDateAndTime(LocalDate date, LocalTime time) {
         String sql = "SELECT COUNT(*) FROM reservation WHERE date = ? AND time = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, date, time);
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, date.toString(), time.toString());
         return count > 0;
     }
 }
