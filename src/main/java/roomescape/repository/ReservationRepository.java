@@ -70,7 +70,7 @@ public class ReservationRepository {
                 .findFirst();
     }
 
-    public void delete(Reservation reservation) {
-        jdbcTemplate.update("DELETE FROM reservation WHERE id = ?", reservation.getId());
+    public int deleteById(long id) {
+        return jdbcTemplate.update("DELETE FROM reservation WHERE id = ?", id);
     }
 }
