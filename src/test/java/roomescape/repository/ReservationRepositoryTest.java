@@ -2,27 +2,28 @@ package roomescape.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
-import org.springframework.dao.DataRetrievalFailureException;
-import roomescape.exception.ReservationException;
-import javax.sql.DataSource;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import javax.sql.DataSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import roomescape.domain.Reservation;
 import roomescape.domain.ReservationDetails;
+import roomescape.exception.ErrorCode;
+import roomescape.exception.ReservationException;
 
 @JdbcTest
 @Import(ReservationRepository.class)
@@ -113,4 +114,29 @@ class ReservationRepositoryTest {
         assertThat(reservationRepository.findAll()).hasSize(1);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"15:40", "15:40:00", "15:40:00.000"})
+    void rejectsDuplicateBookingsWithEquivalentTimeRepresentations(String time) {
+        reservationRepository.save(new ReservationDetails("첫번째", "2023-08-05", "15:40"));
+        assertThatThrownBy(() -> reservationRepository.save(new ReservationDetails("두번째", "2023-08-05", time)))
+                .isInstanceOfSatisfying(ReservationException.class,
+                        exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.DUPLICATE_RESERVATION));
+        assertThat(reservationRepository.findAll()).hasSize(1);
+    }
+
+    @Test
+    void acceptsDifferentDatesOrTimes() {
+        reservationRepository.save(new ReservationDetails("첫번째", "2023-08-05", "15:40"));
+        reservationRepository.save(new ReservationDetails("두번째", "2023-08-06", "15:40"));
+        reservationRepository.save(new ReservationDetails("세번째", "2023-08-05", "16:40"));
+        assertThat(reservationRepository.findAll()).hasSize(3);
+    }
+
+    @Test
+    void doesNotTreatGeneratedIdCollisionsAsDuplicateSlots() {
+        Reservation existing = reservationRepository.save(new ReservationDetails("첫번째", "2023-08-05", "15:40"));
+        jdbcTemplate.execute("ALTER TABLE reservation ALTER COLUMN id RESTART WITH " + existing.getId());
+        assertThatThrownBy(() -> reservationRepository.save(new ReservationDetails("두번째", "2023-08-06", "16:40")))
+                .isInstanceOf(DuplicateKeyException.class);
+    }
 }

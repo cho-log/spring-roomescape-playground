@@ -29,7 +29,8 @@ public class ReservationExceptionHandler {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         if (code == ErrorCode.RESERVATION_NOT_FOUND) {
             status = HttpStatus.NOT_FOUND;
-
+        } else if (code == ErrorCode.DUPLICATE_RESERVATION) {
+            status = HttpStatus.CONFLICT;
         }
         return ResponseEntity.status(status).body(ErrorResponse.from(code));
     }

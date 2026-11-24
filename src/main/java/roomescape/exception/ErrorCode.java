@@ -6,6 +6,7 @@ public enum ErrorCode {
     MISSING_NAME("예약자 이름은 필수입니다."),
     NAME_TOO_LONG("예약자 이름은 255자 이하여야 합니다."),
     PAST_RESERVATION("현재 시각 이후로 예약해 주세요."),
+    DUPLICATE_RESERVATION("이미 예약된 날짜와 시간입니다."),
     MISSING_DATE("예약 날짜는 필수입니다."),
     MISSING_TIME("예약 시간은 필수입니다."),
     INVALID_DATE("유효한 예약 날짜를 입력해 주세요."),

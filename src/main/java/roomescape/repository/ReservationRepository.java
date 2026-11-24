@@ -3,13 +3,15 @@ package roomescape.repository;
 import java.util.List;
 import java.util.Map;
 import org.springframework.dao.DataRetrievalFailureException;
-import roomescape.exception.ReservationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import roomescape.domain.Reservation;
 import roomescape.domain.ReservationDetails;
+import roomescape.exception.ErrorCode;
+import roomescape.exception.ReservationException;
 
 @Repository
 public class ReservationRepository {
@@ -38,10 +40,24 @@ public class ReservationRepository {
     }
 
     public Reservation save(ReservationDetails details) {
-        Number key = reservationInsert.executeAndReturnKey(Map.of(
-                "name", details.getName(), "date", details.getDate().toString(),
-                "time", details.getTime().toString()));
-        return new Reservation(key.longValue(), details);
+        try {
+            Number key = reservationInsert.executeAndReturnKey(Map.of(
+                    "name", details.getName(), "date", details.getDate().toString(),
+                    "time", details.getTime().toString()));
+            return new Reservation(key.longValue(), details);
+        } catch (DuplicateKeyException exception) {
+            // 자동 생성 id의 충돌까지 예약 시간 중복으로 바꾸지 않는다.
+            if (existsAt(details)) {
+                throw new ReservationException(ErrorCode.DUPLICATE_RESERVATION);
+            }
+            throw exception;
+        }
+    }
+
+    private boolean existsAt(ReservationDetails details) {
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(
+                "SELECT EXISTS (SELECT 1 FROM reservation WHERE date = ? AND time = ?)",
+                Boolean.class, details.getDate().toString(), details.getTime().toString()));
     }
 
     public boolean deleteById(Long id) {
