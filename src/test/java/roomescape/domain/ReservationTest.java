@@ -15,13 +15,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ReservationTest {
     @Test
-    void identifiesReservationById() {
-        Reservation reservation = new Reservation(1L, "브라운", "2023-08-05", "15:40");
-        assertThat(reservation.hasId(1L)).isTrue();
-        assertThat(reservation.hasId(2L)).isFalse();
-    }
-
-    @Test
     void rejectsMissingId() {
         assertThatThrownBy(() -> new Reservation(null, "브라운", "2023-08-05", "15:40"))
                 .isInstanceOf(IllegalArgumentException.class)

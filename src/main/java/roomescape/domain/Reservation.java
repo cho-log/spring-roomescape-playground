@@ -20,10 +20,6 @@ public class Reservation {
         this.details = Objects.requireNonNull(details, "예약 내용은 필수입니다.");
     }
 
-    public boolean hasId(Long id) {
-        return this.id.equals(id);
-    }
-
     public Long getId() {
         return id;
     }
