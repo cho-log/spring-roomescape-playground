@@ -9,4 +9,9 @@ public class HomeController {
     public String home(){
         return "home";
     }
+
+    @GetMapping("/time")
+    public String timePage() {
+        return "time";
+    }
 }

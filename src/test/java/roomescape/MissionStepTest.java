@@ -2,6 +2,8 @@ package roomescape;
 
 import io.restassured.RestAssured;
 import static org.assertj.core.api.Assertions.assertThat;
+
+import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -238,5 +240,48 @@ public class MissionStepTest {
                 .when().post("/reservations")
                 .then().statusCode(400);
     }
+
+    private long createTime(String time) {
+        return RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(Map.of("time", time))
+                .when().post("/times")
+                .then().statusCode(201)
+                .extract().jsonPath().getLong("id");
+    }
+
+    @Test
+    void 팔단계() {
+        RestAssured.given()
+                .when().get("/time")
+                .then().statusCode(200);
+
+        Response response = RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(Map.of("time", "10:00"))
+                .when().post("/times")
+                .then().statusCode(201)
+                .extract().response();
+
+        long id = response.jsonPath().getLong("id");
+        assertThat(response.getHeader("Location")).isEqualTo("/times/" + id);
+
+        RestAssured.given()
+                .when().get("/times")
+                .then().statusCode(200)
+                .body("size()", is(1))
+                .body("[0].time", is("10:00"));
+
+        RestAssured.given()
+                .when().delete("/times/{id}", id)
+                .then().statusCode(204);
+
+        RestAssured.given()
+                .when().get("/times")
+                .then().statusCode(200)
+                .body("size()", is(0));
+    }
+
+
 
 }
