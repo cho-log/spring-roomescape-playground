@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import roomescape.domain.Reservation;
 import roomescape.dto.ReservationRequest;
+import roomescape.dto.ReservationResponse;
 import roomescape.repository.ReservationRepository;
+import roomescape.dto.ReservationResponse;
 
 @RestController
 public class ReservationController {
@@ -22,16 +24,16 @@ public class ReservationController {
     }
 
     @GetMapping("/reservations")
-    public List<Reservation> getReservations() {
-        return reservationRepository.findAll();
+    public List<ReservationResponse> getReservations() {
+        return ReservationResponse.fromList(reservationRepository.findAll());
     }
 
     @PostMapping("/reservations")
-    public ResponseEntity<Reservation> createReservation(@RequestBody ReservationRequest request) {
+    public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationRequest request) {
         Reservation reservation = new Reservation(null, request.name(), request.date(), request.time());
         Reservation saved = reservationRepository.save(reservation);
         return ResponseEntity.created(URI.create("/reservations/" + saved.getId()))
-                .body(saved);
+                .body(ReservationResponse.from(saved));
     }
 
 
