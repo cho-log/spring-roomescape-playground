@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -11,6 +12,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import roomescape.domain.Reservation;
+import roomescape.exception.DuplicateReservationException;
 
 @Repository
 public class ReservationDao {
@@ -35,7 +37,11 @@ public class ReservationDao {
                 .addValue("time", reservation.getTime().toString());
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(sql, params, keyHolder, new String[]{"id"});
+        try {
+            jdbcTemplate.update(sql, params, keyHolder, new String[]{"id"});
+        } catch (DuplicateKeyException e) {
+            throw new DuplicateReservationException();
+        }
 
         return keyHolder.getKey().longValue();
     }
@@ -58,12 +64,4 @@ public class ReservationDao {
         return jdbcTemplate.update(sql, params);
     }
 
-    public boolean existsByDateAndTime(LocalDate date, LocalTime time) {
-        String sql = "SELECT COUNT(*) FROM reservation WHERE date = :date AND time = :time";
-        MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("date", date.toString())
-                .addValue("time", time.toString());
-        Integer count = jdbcTemplate.queryForObject(sql, params, Integer.class);
-        return count > 0;
-    }
 }

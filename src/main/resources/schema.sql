@@ -4,5 +4,6 @@ CREATE TABLE reservation
     name    VARCHAR(255) NOT NULL,
     date    VARCHAR(255) NOT NULL,
     time    VARCHAR(255) NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    UNIQUE (date, time)
 );
