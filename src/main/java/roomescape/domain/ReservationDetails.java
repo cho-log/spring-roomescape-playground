@@ -15,6 +15,9 @@ public class ReservationDetails {
         validateRequired(name, ErrorCode.MISSING_NAME);
         validateRequired(date, ErrorCode.MISSING_DATE);
         validateRequired(time, ErrorCode.MISSING_TIME);
+        if (name.length() > 255) {
+            throw new ReservationException(ErrorCode.NAME_TOO_LONG);
+        }
         this.name = name;
         this.date = parseDate(date);
         this.time = parseTime(time);
