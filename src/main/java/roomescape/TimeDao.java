@@ -7,6 +7,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import roomescape.model.Time;
+import java.util.Optional;
 
 @Repository
 public class TimeDao {
@@ -45,5 +46,12 @@ public class TimeDao {
 
     public void delete(Long id) {
         jdbcTemplate.update("DELETE FROM time WHERE id = ?", id);
+    }
+
+    public Optional<Time> findById(Long id) {
+        return jdbcTemplate.query(
+                        "SELECT id, time FROM time WHERE id = ?", ROW_MAPPER, id)
+                .stream()
+                .findFirst();
     }
 }

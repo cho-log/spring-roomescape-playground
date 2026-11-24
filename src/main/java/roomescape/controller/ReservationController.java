@@ -1,85 +1,65 @@
-
 package roomescape.controller;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PathVariable;
+import jakarta.validation.Valid;
+import java.net.URI;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
-
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
 import roomescape.ReservationDao;
+import roomescape.TimeDao;
 import roomescape.dto.CreateReservationRequest;
+import roomescape.exception.InvalidReservationTimeException;
 import roomescape.exception.ReservationNotFoundException;
 import roomescape.model.Reservation;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
-
-import jakarta.validation.Valid;
+import roomescape.model.Time;
 
 @Controller
 public class ReservationController {
 
     private final ReservationDao reservationDao;
+    private final TimeDao timeDao;
 
-    public ReservationController(ReservationDao reservationDao) {
+    public ReservationController(ReservationDao reservationDao, TimeDao timeDao) {
         this.reservationDao = reservationDao;
+        this.timeDao = timeDao;
     }
 
     @GetMapping("/reservation")
-    public String reservation() {
-        return "reservation";
+    public String reservationPage() {
+        return "new-reservation";
     }
 
-    private List<Reservation> reservations = new ArrayList<>();
-
-    // 모든 예약 조회 (DAO 사용)
     @GetMapping("/reservations")
     @ResponseBody
     public List<Reservation> getReservations() {
         return reservationDao.findAll();
     }
 
-    private AtomicLong index = new AtomicLong(1);
-
-    // 예약 생성
-    private boolean isBlank(String value) {
-        return value == null || value.isBlank();
-    }
-
-    // 예약 생성
     @PostMapping("/reservations")
-    public ResponseEntity<Reservation> save(
-            @Valid @RequestBody CreateReservationRequest request) {
+    @ResponseBody
+    public ResponseEntity<Reservation> createReservation(
+            @Valid @RequestBody CreateReservationRequest request
+    ) {
+        Time time = timeDao.findById(request.timeId())
+                .orElseThrow(() -> new InvalidReservationTimeException(request.timeId()));
 
-        Reservation reservation = new Reservation(
-                null,
-                request.name(),
-                request.date(),
-                request.time()
-        );
+        Reservation saved = reservationDao.save(
+                new Reservation(request.name(), request.date(), time));
 
-        Reservation saved = reservationDao.save(reservation);
-
-        return ResponseEntity
-                .created(URI.create("/reservations/" + saved.getId()))
+        return ResponseEntity.created(URI.create("/reservations/" + saved.getId()))
                 .body(saved);
     }
 
-    // 예약 삭제
     @DeleteMapping("/reservations/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        int deletedRows = reservationDao.delete(id);
-
-        if (deletedRows == 0) {
-            throw new ReservationNotFoundException(
-                    "존재하지 않는 예약입니다. id=" + id
-            );
+    public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {
+        if (reservationDao.delete(id) == 0) {
+            throw new ReservationNotFoundException("존재하지 않는 예약입니다. id=" + id);
         }
 
         return ResponseEntity.noContent().build();

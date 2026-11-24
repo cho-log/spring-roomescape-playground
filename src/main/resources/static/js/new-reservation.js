@@ -76,8 +76,7 @@ function createActionButton(label, className, eventListener) {
 }
 
 function addEditableRow() {
-
-  if (isEditing) return;  // 이미 편집 중인 경우 추가하지 않음
+  if (isEditing || !document.getElementById('time-select')) return;
 
   const tableBody = document.getElementById('reservation-table-body');
   const row = tableBody.insertRow();
@@ -121,22 +120,26 @@ function createInput(type) {
 }
 
 function saveRow(event) {
-  const row = event.target.parentNode.parentNode;
+  const row = event.target.closest('tr');
   const nameInput = row.querySelector('input[type="text"]');
   const dateInput = row.querySelector('input[type="date"]');
   const timeSelect = row.querySelector('select');
 
+  const timeId = Number(timeSelect.value);
+  if (!Number.isSafeInteger(timeId) || timeId <= 0) {
+    alert('시간을 선택해 주세요.');
+    return;
+  }
+
   const reservation = {
     name: nameInput.value,
     date: dateInput.value,
-    time: timeSelect.value
+    time: timeId
   };
 
   requestCreate(reservation)
       .then(data => updateRowWithReservationData(row, data))
       .catch(error => console.error('Error:', error));
-
-  isEditing = false;  // isEditing 값을 false로 설정
 }
 
 function updateRowWithReservationData(row, data) {

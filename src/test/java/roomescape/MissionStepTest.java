@@ -47,58 +47,47 @@ public class MissionStepTest {
 
     @Test
     void 삼단계() {
-        Map<String, String> params = new HashMap<>();
-        params.put("name", "브라운");
-        params.put("date", "2023-08-05");
-        params.put("time", "15:40");
+        long timeId = createTime("15:40");
 
-        RestAssured.given().log().all()
+        Response response = RestAssured.given()
                 .contentType(ContentType.JSON)
-                .body(params)
+                .body(Map.of("name", "브라운", "date", "2023-08-05", "time", timeId))
                 .when().post("/reservations")
-                .then().log().all()
-                .statusCode(201)
-                .header("Location", "/reservations/1")
-                .body("id", is(1));
+                .then().statusCode(201)
+                .extract().response();
 
-        RestAssured.given().log().all()
+        long reservationId = response.jsonPath().getLong("id");
+        String location = response.getHeader("Location");
+        assertThat(location).isEqualTo("/reservations/" + reservationId);
+
+        RestAssured.given()
                 .when().get("/reservations")
-                .then().log().all()
-                .statusCode(200)
+                .then().statusCode(200)
                 .body("size()", is(1));
 
-        RestAssured.given().log().all()
-                .when().delete("/reservations/1")
-                .then().log().all()
-                .statusCode(204);
+        RestAssured.given()
+                .when().delete(location)
+                .then().statusCode(204);
 
-        RestAssured.given().log().all()
+        RestAssured.given()
                 .when().get("/reservations")
-                .then().log().all()
-                .statusCode(200)
+                .then().statusCode(200)
                 .body("size()", is(0));
     }
 
     @Test
     void 사단계() {
-        Map<String, String> params = new HashMap<>();
-        params.put("name", "브라운");
-        params.put("date", "");
-        params.put("time", "");
+        long timeId = createTime("10:00");
 
-        // 필요한 인자가 없는 경우
-        RestAssured.given().log().all()
+        RestAssured.given()
                 .contentType(ContentType.JSON)
-                .body(params)
+                .body(Map.of("name", "브라운", "date", "", "time", timeId))
                 .when().post("/reservations")
-                .then().log().all()
-                .statusCode(400);
+                .then().statusCode(400);
 
-        // 삭제할 예약이 없는 경우
-        RestAssured.given().log().all()
+        RestAssured.given()
                 .when().delete("/reservations/1")
-                .then().log().all()
-                .statusCode(404);
+                .then().statusCode(404);
     }
 
     @Autowired
@@ -116,138 +105,51 @@ public class MissionStepTest {
 
     @Test
     void 육단계() {
-        jdbcTemplate.update(
-                "INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)",
-                "브라운", "2023-08-05", "15:40"
-        );
+        long timeId = createTime("15:40");
 
-        List<Reservation> reservations = RestAssured.given()
+        jdbcTemplate.update(
+                "INSERT INTO reservation (name, date, time_id) VALUES (?, ?, ?)",
+                "브라운", "2023-08-05", timeId);
+
+        RestAssured.given()
                 .when().get("/reservations")
                 .then().statusCode(200)
-                .extract().jsonPath().getList(".", Reservation.class);
-
-        assertThat(reservations).hasSize(1);
-
-        Reservation reservation = reservations.get(0);
-
-        assertThat(reservation.getName()).isEqualTo("브라운");
-        assertThat(reservation.getDate()).isEqualTo("2023-08-05");
-        assertThat(reservation.getTime()).isEqualTo("15:40");
+                .body("size()", is(1))
+                .body("[0].name", is("브라운"))
+                .body("[0].date", is("2023-08-05"))
+                .body("[0].time.id", is(Math.toIntExact(timeId)))
+                .body("[0].time.time", is("15:40"));
     }
 
     @Test
     void 칠단계() {
+        long timeId = createTime("10:00");
+        Map<String, Object> params = Map.of(
+                "name", "브라운", "date", "2023-08-05", "time", timeId);
 
-        // 첫 번째 예약 생성
-        Map<String, String> firstParams = Map.of(
-                "name", "브라운",
-                "date", "2023-08-05",
-                "time", "10:00"
-        );
-
-        String firstLocation = RestAssured.given()
+        Response response = RestAssured.given()
                 .contentType(ContentType.JSON)
-                .body(firstParams)
+                .body(params)
                 .when().post("/reservations")
                 .then().statusCode(201)
-                .extract().header("Location");
+                .extract().response();
 
+        long id = response.jsonPath().getLong("id");
+        String location = response.getHeader("Location");
+        assertThat(location).isEqualTo("/reservations/" + id);
 
-        // 두 번째 예약 생성
-        Map<String, String> secondParams = Map.of(
-                "name", "토미",
-                "date", "2023-08-06",
-                "time", "11:00"
-        );
+        Integer savedCount= jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM reservation WHERE id = ? AND name = ? AND date = ? AND time_id = ?",
+                Integer.class, id, params.get("name"), params.get("date"), timeId);
+        assertThat(savedCount).isEqualTo(1);
 
         RestAssured.given()
-                .contentType(ContentType.JSON)
-                .body(secondParams)
-                .when().post("/reservations")
-                .then().statusCode(201);
-
-
-        // 예약 두 건이 저장되었는지 확인
-        Integer count = jdbcTemplate.queryForObject(
-                "SELECT count(1) FROM reservation",
-                Integer.class
-        );
-
-        assertThat(count).isEqualTo(2);
-
-
-        // 첫 번째 예약만 삭제
-        RestAssured.given()
-                .when().delete(firstLocation)
+                .when().delete(location)
                 .then().statusCode(204);
 
-
-        // 두 번째 예약만 남았는지 확인
-        List<Reservation> remainingReservations = RestAssured.given()
-                .when().get("/reservations")
-                .then().statusCode(200)
-                .extract().jsonPath().getList(".", Reservation.class);
-
-        assertThat(remainingReservations).hasSize(1);
-
-        Reservation remaining = remainingReservations.get(0);
-
-        assertThat(remaining.getName()).isEqualTo("토미");
-        assertThat(remaining.getDate()).isEqualTo("2023-08-06");
-        assertThat(remaining.getTime()).isEqualTo("11:00");
-
-
-        // DB에도 한 건만 남았는지 확인
         Integer countAfterDelete = jdbcTemplate.queryForObject(
-                "SELECT count(1) FROM reservation",
-                Integer.class
-        );
-
-        assertThat(countAfterDelete).isEqualTo(1);
-    }
-
-    @Test
-    void 예약자_이름_길이_검증() {
-
-        // 255자 이름: 성공
-        String name255 = "가".repeat(255);
-
-        Map<String, String> params255 = Map.of(
-                "name", name255,
-                "date", "2023-08-05",
-                "time", "10:00"
-        );
-
-        RestAssured.given()
-                .contentType(ContentType.JSON)
-                .body(params255)
-                .when().post("/reservations")
-                .then().statusCode(201);
-
-
-        // 256자 이름: 실패
-        String name256 = "가".repeat(256);
-
-        Map<String, String> params256 = Map.of(
-                "name", name256,
-                "date", "2023-08-05",
-                "time", "11:00"
-        );
-
-        RestAssured.given()
-                .contentType(ContentType.JSON)
-                .body(params256)
-                .when().post("/reservations")
-                .then().statusCode(400);
-    }
-
-    private long createTime(String time) {
-        return RestAssured.given()
-                .contentType(ContentType.JSON)
-                .body(Map.of("time", time))
-                .when().post("/times")
-                .then().statusCode(201)
-                .extract().jsonPath().getLong("id");
+                "SELECT COUNT(*) FROM reservation", Integer.class);
+        assertThat(countAfterDelete).isZero();
     }
 
     @Test
@@ -282,6 +184,74 @@ public class MissionStepTest {
                 .body("size()", is(0));
     }
 
+    @Test
+    void 구단계() {
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(Map.of("name", "브라운", "date", "2023-08-05", "time", "10:00"))
+                .when().post("/reservations")
+                .then().statusCode(400);
 
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(Map.of("name", "브라운", "date", "2023-08-05", "time", 999L))
+                .when().post("/reservations")
+                .then().statusCode(400);
+    }
 
+    @Test
+    void 예약자_이름이_저장_한도를_넘으면_400을_반환한다() {
+        long timeId = createTime("10:00");
+
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(Map.of("name", "a".repeat(256), "date", "2023-08-05", "time", timeId))
+                .when().post("/reservations")
+                .then().statusCode(400);
+    }
+
+    @Test
+    void 예약자_이름_길이_검증() {
+        long timeId = createTime("10:00");
+
+        // 255자 이름: 성공
+        String name255 = "가".repeat(255);
+
+        Map<String, Object> params255 = Map.of(
+                "name", name255,
+                "date", "2023-08-05",
+                "time", timeId
+        );
+
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(params255)
+                .when().post("/reservations")
+                .then().statusCode(201);
+
+        // 256자 이름: 실패
+        String name256 = "가".repeat(256);
+
+        Map<String, Object> params256 = Map.of(
+                "name", name256,
+                "date", "2023-08-05",
+                "time", timeId
+        );
+
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(params256)
+                .when().post("/reservations")
+                .then().statusCode(400);
+    }
+
+    private long createTime(String time) {
+        return RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(Map.of("time", time))
+                .when().post("/times")
+                .then().statusCode(201)
+                .extract().jsonPath().getLong("id");
+    }
+    
 }
