@@ -16,7 +16,7 @@ public class Reservation {
     }
 
     public Reservation(Long id, String name, LocalDate date, LocalTime time) {
-        validateName(name);
+        validateValues(name, date, time);
         this.id = id;
         this.name = name;
         this.date = date;
@@ -27,7 +27,7 @@ public class Reservation {
         return new Reservation(id, name, date, time);
     }
 
-    private void validateName(String name) {
+    private void validateValues(String name, LocalDate date, LocalTime time) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("이름을 입력해야 합니다.");
         }
@@ -36,6 +36,14 @@ public class Reservation {
         }
         if (name.length() > MAX_NAME_LENGTH) {
             throw new IllegalArgumentException("이름은 " + MAX_NAME_LENGTH + "자 이내여야 합니다.");
+        }
+
+        if (date == null) {
+            throw new IllegalArgumentException("날짜를 입력해야 합니다.");
+        }
+
+        if (time == null) {
+            throw new IllegalArgumentException("시간을 입력해야 합니다.");
         }
     }
 
