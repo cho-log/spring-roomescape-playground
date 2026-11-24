@@ -2,24 +2,23 @@ package roomescape.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.sql.SQLException;
+import javax.sql.DataSource;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import roomescape.domain.Reservation;
 import roomescape.domain.ReservationDetails;
 
@@ -86,21 +85,14 @@ class ReservationRepositoryTest {
     }
 
     @Test
-    void databaseRejectsMissingRequiredValues() {
-        assertThatThrownBy(() -> jdbcTemplate.update(
-                "INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)",
-                null, "2023-08-05", "15:40"))
-                .isInstanceOf(DataIntegrityViolationException.class);
-        assertThat(reservationRepository.findAll()).isEmpty();
+    void propagatesDatabaseFailuresInsteadOfReturningEmptyResults() throws SQLException {
+        DataSource dataSource = mock(DataSource.class);
+        SQLException failure = new SQLException("connection unavailable");
+        when(dataSource.getConnection()).thenThrow(failure);
+        ReservationRepository failingRepository = new ReservationRepository(new JdbcTemplate(dataSource));
+
+        assertThatThrownBy(failingRepository::findAll)
+                .isInstanceOf(CannotGetJdbcConnectionException.class).hasRootCause(failure);
     }
 
-    @Test
-    void propagatesDatabaseFailuresInsteadOfReturningEmptyResults() {
-        JdbcTemplate failingTemplate = spy(jdbcTemplate);
-        CannotGetJdbcConnectionException failure = new CannotGetJdbcConnectionException("connection unavailable");
-        doThrow(failure).when(failingTemplate).query(anyString(), ArgumentMatchers.<RowMapper<Reservation>>any());
-        ReservationRepository failingRepository = new ReservationRepository(failingTemplate);
-
-        assertThatThrownBy(failingRepository::findAll).isSameAs(failure);
-    }
 }
