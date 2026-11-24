@@ -18,6 +18,12 @@ import java.util.HashMap;
 import io.restassured.http.ContentType;
 import roomescape.model.Reservation;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.List;
+import roomescape.controller.ReservationController;
+import roomescape.service.ReservationService;
+
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
@@ -253,5 +259,19 @@ public class MissionStepTest {
                 .then().statusCode(201)
                 .extract().jsonPath().getLong("id");
     }
-    
+
+    @Autowired
+    private ReservationController reservationController;
+
+    @Test
+    void 십단계() {
+        List<Class<?>> fieldTypes = Arrays.stream(
+                        reservationController.getClass().getDeclaredFields())
+                .map(Field::getType)
+                .toList();
+
+        assertThat(fieldTypes).doesNotContain(JdbcTemplate.class);
+        assertThat(fieldTypes).contains(ReservationService.class);
+    }
+
 }
