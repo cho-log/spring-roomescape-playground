@@ -2,53 +2,22 @@ package roomescape.domain;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.format.DateTimeParseException;
-import roomescape.exception.ErrorCode;
-import roomescape.exception.ReservationException;
+import java.util.Objects;
 
 public class Reservation {
     private final Long id;
-    private final String name;
-    private final LocalDate date;
-    private final LocalTime time;
+    private final ReservationDetails details;
 
     public Reservation(Long id, String name, String date, String time) {
+        this(id, new ReservationDetails(name, date, time));
+    }
+
+    public Reservation(Long id, ReservationDetails details) {
         if (id == null) {
             throw new IllegalArgumentException("예약 id는 필수입니다.");
         }
-        validateRequired(name, ErrorCode.MISSING_NAME);
-        validateRequired(date, ErrorCode.MISSING_DATE);
-        validateRequired(time, ErrorCode.MISSING_TIME);
         this.id = id;
-        this.name = name;
-        this.date = parseDate(date);
-        this.time = parseTime(time);
-    }
-
-    private void validateRequired(String value, ErrorCode errorCode) {
-        if (value == null || value.isBlank()) {
-            throw new ReservationException(errorCode);
-        }
-    }
-
-    private LocalDate parseDate(String date) {
-        try {
-            return LocalDate.parse(date);
-        } catch (DateTimeParseException exception) {
-            throw new ReservationException(ErrorCode.INVALID_DATE);
-        }
-    }
-
-    private LocalTime parseTime(String time) {
-        try {
-            return LocalTime.parse(time);
-        } catch (DateTimeParseException exception) {
-            throw new ReservationException(ErrorCode.INVALID_TIME);
-        }
-    }
-
-    public boolean hasId(Long id) {
-        return this.id.equals(id);
+        this.details = Objects.requireNonNull(details, "예약 내용은 필수입니다.");
     }
 
     public Long getId() {
@@ -56,14 +25,14 @@ public class Reservation {
     }
 
     public String getName() {
-        return name;
+        return details.getName();
     }
 
     public LocalDate getDate() {
-        return date;
+        return details.getDate();
     }
 
     public LocalTime getTime() {
-        return time;
+        return details.getTime();
     }
 }
