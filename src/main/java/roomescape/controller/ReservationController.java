@@ -14,16 +14,14 @@ import roomescape.domain.Reservation;
 import roomescape.domain.ReservationDetails;
 import roomescape.dto.ReservationRequest;
 import roomescape.dto.ReservationResponse;
-import roomescape.exception.ErrorCode;
-import roomescape.exception.ReservationException;
-import roomescape.repository.ReservationRepository;
+import roomescape.service.ReservationService;
 
 @Controller
 public class ReservationController {
-    private final ReservationRepository reservationRepository;
+    private final ReservationService reservationService;
 
-    public ReservationController(ReservationRepository reservationRepository) {
-        this.reservationRepository = reservationRepository;
+    public ReservationController(ReservationService reservationService) {
+        this.reservationService = reservationService;
     }
 
     @GetMapping("/reservation")
@@ -35,14 +33,14 @@ public class ReservationController {
     @GetMapping("/reservations")
     @ResponseBody
     public List<ReservationResponse> getReservations() {
-        return reservationRepository.findAll().stream().map(ReservationResponse::from).toList();
+        return reservationService.findAll().stream().map(ReservationResponse::from).toList();
     }
 
 
     @PostMapping("/reservations")
     public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationRequest request) {
         ReservationDetails details = new ReservationDetails(request.name(), request.date(), request.time());
-        Reservation reservation = reservationRepository.save(details);
+        Reservation reservation = reservationService.create(details);
         return ResponseEntity.created(URI.create("/reservations/" + reservation.getId()))
                 .body(ReservationResponse.from(reservation));
     }
@@ -50,10 +48,7 @@ public class ReservationController {
 
     @DeleteMapping("/reservations/{id}")
     public ResponseEntity<Void> deleteReservation(@PathVariable("id") Long id) {
-        int deletedCount = reservationRepository.deleteById(id);
-        if (deletedCount == 0) {
-            throw new ReservationException(ErrorCode.RESERVATION_NOT_FOUND);
-        }
+        reservationService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }

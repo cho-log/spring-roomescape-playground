@@ -66,12 +66,12 @@ class ReservationRepositoryTest {
     }
 
     @Test
-    void reportsDeletedRowsAndPreservesOtherReservations() {
+    void reportsWhetherAReservationWasDeletedAndPreservesOthers() {
         Reservation first = reservationRepository.save(new ReservationDetails("첫번째", "2023-08-05", "15:40"));
         Reservation second = reservationRepository.save(new ReservationDetails("두번째", "2023-08-05", "18:00"));
 
-        assertThat(reservationRepository.deleteById(first.getId())).isEqualTo(1);
-        assertThat(reservationRepository.deleteById(first.getId())).isZero();
+        assertThat(reservationRepository.deleteById(first.getId())).isTrue();
+        assertThat(reservationRepository.deleteById(first.getId())).isFalse();
         assertThat(reservationRepository.findAll()).extracting(Reservation::getId)
                 .containsExactly(second.getId());
     }

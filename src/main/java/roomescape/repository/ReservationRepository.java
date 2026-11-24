@@ -44,7 +44,7 @@ public class ReservationRepository {
         return new Reservation(key.longValue(), details);
     }
 
-    public int deleteById(Long id) {
-        return jdbcTemplate.update("DELETE FROM reservation WHERE id = ?", id);
+    public boolean deleteById(Long id) {
+        return jdbcTemplate.update("DELETE FROM reservation WHERE id = ?", id) > 0;
     }
 }
