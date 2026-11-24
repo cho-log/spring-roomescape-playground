@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 
 import roomescape.ReservationDao;
 import roomescape.dto.CreateReservationRequest;
-import roomescape.exception.BadRequestReservationException;
 import roomescape.exception.ReservationNotFoundException;
 import roomescape.model.Reservation;
 
@@ -53,17 +52,19 @@ public class ReservationController {
         return value == null || value.isBlank();
     }
 
+    // 예약 생성
     @PostMapping("/reservations")
     public ResponseEntity<Reservation> save(
-            @RequestBody Reservation request) {
+            @Valid @RequestBody CreateReservationRequest request) {
 
-        if (isBlank(request.getName())
-                || isBlank(request.getDate())
-                || isBlank(request.getTime())) {
-            throw new BadRequestReservationException();
-        }
+        Reservation reservation = new Reservation(
+                null,
+                request.name(),
+                request.date(),
+                request.time()
+        );
 
-        Reservation saved = reservationDao.save(request);
+        Reservation saved = reservationDao.save(reservation);
 
         return ResponseEntity
                 .created(URI.create("/reservations/" + saved.getId()))
