@@ -7,6 +7,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
+import org.springframework.dao.DataRetrievalFailureException;
+import roomescape.exception.ReservationException;
 import javax.sql.DataSource;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -93,6 +95,22 @@ class ReservationRepositoryTest {
 
         assertThatThrownBy(failingRepository::findAll)
                 .isInstanceOf(CannotGetJdbcConnectionException.class).hasRootCause(failure);
+    }
+
+    @Test
+    void treatsInvalidStoredDataAsADataRetrievalFailure() {
+        jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)",
+                "브라운", "2023/08/05", "15:40");
+        assertThatThrownBy(reservationRepository::findAll)
+                .isInstanceOf(DataRetrievalFailureException.class)
+                .hasCauseInstanceOf(ReservationException.class);
+    }
+
+    @Test
+    void restoresHistoricalReservationsWithoutApplyingNewBookingRules() {
+        jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)",
+                "브라운", "2000-01-01", "15:40");
+        assertThat(reservationRepository.findAll()).hasSize(1);
     }
 
 }

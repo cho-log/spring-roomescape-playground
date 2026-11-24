@@ -2,6 +2,8 @@ package roomescape.repository;
 
 import java.util.List;
 import java.util.Map;
+import org.springframework.dao.DataRetrievalFailureException;
+import roomescape.exception.ReservationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -11,9 +13,14 @@ import roomescape.domain.ReservationDetails;
 
 @Repository
 public class ReservationRepository {
-    private static final RowMapper<Reservation> ROW_MAPPER = (resultSet, rowNumber) ->
-            new Reservation(resultSet.getLong("id"), resultSet.getString("name"),
+    private static final RowMapper<Reservation> ROW_MAPPER = (resultSet, rowNumber) -> {
+        try {
+            return new Reservation(resultSet.getLong("id"), resultSet.getString("name"),
                     resultSet.getString("date"), resultSet.getString("time"));
+        } catch (ReservationException exception) {
+            throw new DataRetrievalFailureException("저장된 예약 데이터가 유효하지 않습니다.", exception);
+        }
+    };
 
     private final JdbcTemplate jdbcTemplate;
     private final SimpleJdbcInsert reservationInsert;

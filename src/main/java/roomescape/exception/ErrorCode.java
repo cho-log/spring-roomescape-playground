@@ -1,6 +1,7 @@
 package roomescape.exception;
 
 public enum ErrorCode {
+    INTERNAL_ERROR("요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요."),
     INVALID_REQUEST("요청 형식을 확인해 주세요."),
     MISSING_NAME("예약자 이름은 필수입니다."),
     MISSING_DATE("예약 날짜는 필수입니다."),
