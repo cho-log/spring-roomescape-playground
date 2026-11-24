@@ -13,6 +13,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -164,6 +168,45 @@ public class MissionStepTest {
                 .when().post("/reservations")
                 .then().log().all()
                 .statusCode(409);
+    }
+
+    @Test
+    void 같은_시간에_동시에_예약하면_하나만_저장된다() throws InterruptedException {
+        String tomorrow = LocalDate.now().plusDays(1).toString();
+        Map<String, String> params = new HashMap<>();
+        params.put("name", "브라운");
+        params.put("date", tomorrow);
+        params.put("time", "10:00");
+
+        int requestCount = 2;
+        ExecutorService executorService = Executors.newFixedThreadPool(requestCount);
+        CountDownLatch startSignal = new CountDownLatch(1);
+        CountDownLatch endSignal = new CountDownLatch(requestCount);
+        List<Integer> statusCodes = new CopyOnWriteArrayList<>();
+        for (int i = 0; i < requestCount; i++) {
+            executorService.submit(() -> {
+                try{
+                    startSignal.await();
+                    int statusCode = RestAssured.given()
+                            .contentType(ContentType.JSON)
+                            .body(params)
+                            .when().post("/reservations")
+                            .then().extract().statusCode();
+                    statusCodes.add(statusCode);
+                } catch (InterruptedException exception) {
+                    Thread.currentThread().interrupt();
+                } finally {
+                    endSignal.countDown();
+                }
+            });
+        }
+        startSignal.countDown();
+        endSignal.await();
+        executorService.shutdown();
+
+        assertThat(statusCodes).containsExactlyInAnyOrder(201, 409);
+        Integer count = jdbcTemplate.queryForObject("SELECT count(1) FROM reservation", Integer.class);
+        assertThat(count).isEqualTo(1);
     }
 
     @Autowired
