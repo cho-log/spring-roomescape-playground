@@ -1,6 +1,7 @@
 package roomescape.domain;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import roomescape.exception.ErrorCode;
@@ -42,6 +43,12 @@ public class ReservationDetails {
             return LocalTime.parse(time);
         } catch (DateTimeParseException exception) {
             throw new ReservationException(ErrorCode.INVALID_TIME);
+        }
+    }
+
+    public void validateBookableAt(LocalDateTime now) {
+        if (!date.atTime(time).isAfter(now)) {
+            throw new ReservationException(ErrorCode.PAST_RESERVATION);
         }
     }
 

@@ -8,6 +8,9 @@ import io.restassured.http.ContentType;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,14 +21,28 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@Import(MissionStepTest.FixedClockConfiguration.class)
 @Sql(statements = {"DELETE FROM reservation", "ALTER TABLE reservation ALTER COLUMN id RESTART WITH 1"})
 public class MissionStepTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @TestConfiguration
+    static class FixedClockConfiguration {
+        @Bean
+        @Primary
+        Clock testClock() {
+            return Clock.fixed(Instant.parse("2023-08-01T00:00:00Z"), ZoneId.of("Asia/Seoul"));
+        }
+    }
 
     @Test
     void 일단계() {
