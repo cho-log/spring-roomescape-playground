@@ -13,7 +13,6 @@ import roomescape.domain.Reservation;
 import roomescape.dto.ReservationRequest;
 import roomescape.dto.ReservationResponse;
 import roomescape.repository.ReservationRepository;
-import roomescape.dto.ReservationResponse;
 
 @RestController
 public class ReservationController {
