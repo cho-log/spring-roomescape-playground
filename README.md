@@ -12,15 +12,26 @@
 - `/reservation` 요청 시 예약 관리 페이지를 응답한다.
 - 예약 관리 페이지는 `templates/reservation.html` 파일을 이용한다.
 
-### 예약 API
+### 데이터베이스
 
-- API 명세에 따라 예약 관리 페이지 로드 시 호출되는 예약 목록 조회 API를 구현한다.
-- API 명세에 따라 예약 추가 API를 구현한다.
-- API 명세에 따라 예약 삭제 API를 구현한다.
-- 예약 관리 페이지에서 예약 추가와 취소가 정상적으로 동작해야 한다.
-- 예약 관련 API 호출 시 에러가 발생하는 경우 중 요청의 문제인 경우 적절한 Status Code를 응답한다.
+- h2 데이터베이스를 활용하여 데이터를 저장한다.
+- `spring-boot-starter-jdbc`, `h2` 의존성을 추가한다.
+- `schema.sql`에 예약 테이블을 생성하는 쿼리를 작성한다.
+- h2 데이터베이스의 console 기능을 활성화한다.
+- datasource url을 `jdbc:h2:mem:database`로 지정한다.
+
+#### 예약 조회
+
+- 예약 조회 API는 데이터베이스에 저장된 예약을 조회한다.
+
+#### 예약 추가·삭제
+
+- 예약 추가·삭제 API는 데이터베이스를 활용한다.
+- 기존에 사용하던 `List`와 `AtomicLong`을 제거한다.
+- 예약 추가 시 데이터베이스가 생성한 id로 응답한다.
 
 ### 예외 처리
+
 #### 예약 추가
 - 이름, 날짜, 시간 중 하나라도 비어 있거나 없으면 '400 Bad Request' 를 응답한다.
 - 지난 날짜·시간으로 예약하면 '400 Bad Request' 를 응답한다.
@@ -44,16 +55,23 @@ src
 │           │   └── ReservationResponse.java
 │           ├── exception
 │           │   ├── DuplicateReservationException.java
+│           │   ├── ErrorResponse.java
 │           │   ├── GlobalExceptionHandler.java
 │           │   ├── InvalidReservationException.java
 │           │   ├── NotFoundReservationException.java
 │           │   └── PastReservationException.java
 │           ├── model
 │           │   └── Reservation.java
-│           └── repository
-│               └── ReservationRepository.java
+│           ├── repository
+│           │   └── ReservationRepository.java
+│           └── service
+│               └── ReservationService.java
 └── test
     └── java
         └── roomescape
-            └── MissionStepTest.java
+            ├── MissionStepTest.java
+            ├── model
+            │   └── ReservationTest.java
+            └── service
+                └── ReservationServiceTest.java
 ```

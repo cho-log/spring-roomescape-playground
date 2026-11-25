@@ -1,17 +1,28 @@
 package roomescape;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
+import roomescape.model.Reservation;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
@@ -158,4 +169,102 @@ public class MissionStepTest {
                 .then().log().all()
                 .statusCode(409);
     }
+
+    @Test
+    void 같은_시간에_동시에_예약하면_하나만_저장된다() throws InterruptedException {
+        String tomorrow = LocalDate.now().plusDays(1).toString();
+        Map<String, String> params = new HashMap<>();
+        params.put("name", "브라운");
+        params.put("date", tomorrow);
+        params.put("time", "10:00");
+
+        int requestCount = 2;
+        ExecutorService executorService = Executors.newFixedThreadPool(requestCount);
+        CountDownLatch startSignal = new CountDownLatch(1);
+        CountDownLatch endSignal = new CountDownLatch(requestCount);
+        List<Integer> statusCodes = new CopyOnWriteArrayList<>();
+        for (int i = 0; i < requestCount; i++) {
+            executorService.submit(() -> {
+                try{
+                    startSignal.await();
+                    int statusCode = RestAssured.given()
+                            .contentType(ContentType.JSON)
+                            .body(params)
+                            .when().post("/reservations")
+                            .then().extract().statusCode();
+                    statusCodes.add(statusCode);
+                } catch (InterruptedException exception) {
+                    Thread.currentThread().interrupt();
+                } finally {
+                    endSignal.countDown();
+                }
+            });
+        }
+        startSignal.countDown();
+        endSignal.await();
+        executorService.shutdown();
+
+        assertThat(statusCodes).containsExactlyInAnyOrder(201, 409);
+        Integer count = jdbcTemplate.queryForObject("SELECT count(1) FROM reservation", Integer.class);
+        assertThat(count).isEqualTo(1);
+    }
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Test
+    void 오단계() {
+        try (Connection connection = jdbcTemplate.getDataSource().getConnection()) {
+            assertThat(connection).isNotNull();
+            assertThat(connection.getCatalog()).isEqualTo("DATABASE");
+            assertThat(connection.getMetaData().getTables(null, null, "RESERVATION", null).next()).isTrue();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    void 육단계() {
+        jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)", "브라운", "2023-08-05",
+                "15:40");
+
+        Integer count = jdbcTemplate.queryForObject("SELECT count(1) from reservation", Integer.class);
+
+        RestAssured.given().log().all()
+                .when().get("/reservations")
+                .then().log().all()
+                .statusCode(200)
+                .body("size()", is(count))
+                .body("[0].name", is("브라운"));
+    }
+
+    @Test
+    void 칠단계() {
+        String tomorrow = LocalDate.now().plusDays(1).toString();
+
+        Map<String, String> params = new HashMap<>();
+        params.put("name", "브라운");
+        params.put("date", tomorrow);
+        params.put("time", "10:00");
+
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().post("/reservations")
+                .then().log().all()
+                .statusCode(201)
+                .header("Location", "/reservations/1");
+
+        Integer count = jdbcTemplate.queryForObject("SELECT count(1) from reservation", Integer.class);
+        assertThat(count).isEqualTo(1);
+
+        RestAssured.given().log().all()
+                .when().delete("/reservations/1")
+                .then().log().all()
+                .statusCode(204);
+
+        Integer countAfterDelete = jdbcTemplate.queryForObject("SELECT count(1) from reservation", Integer.class);
+        assertThat(countAfterDelete).isEqualTo(0);
+    }
+
 }

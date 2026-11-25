@@ -8,18 +8,25 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import roomescape.dto.ReservationRequest;
 import roomescape.exception.DuplicateReservationException;
 import roomescape.exception.NotFoundReservationException;
 import roomescape.exception.PastReservationException;
 import roomescape.repository.ReservationRepository;
 
+@JdbcTest
 class ReservationServiceTest {
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     private ReservationService reservationService;
 
     @BeforeEach
     void setUp() {
-        reservationService = new ReservationService(new ReservationRepository());
+        reservationService = new ReservationService(new ReservationRepository(jdbcTemplate));
     }
 
     @Test

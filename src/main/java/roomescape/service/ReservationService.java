@@ -2,6 +2,7 @@ package roomescape.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import roomescape.dto.ReservationRequest;
 import roomescape.dto.ReservationResponse;
@@ -13,7 +14,8 @@ import roomescape.repository.ReservationRepository;
 
 @Service
 public class ReservationService {
-    private  final ReservationRepository reservationRepository;
+    private final ReservationRepository reservationRepository;
+
     public ReservationService(ReservationRepository reservationRepository) {
         this.reservationRepository = reservationRepository;
     }
@@ -36,13 +38,18 @@ public class ReservationService {
             throw new DuplicateReservationException("이미 예약된 날짜와 시간입니다.");
         }
 
-        Reservation savedReservation = reservationRepository.save(reservation);
-        return ReservationResponse.from(savedReservation);
+        try{
+            Reservation savedReservation = reservationRepository.save(reservation);
+            return ReservationResponse.from(savedReservation);
+        } catch (DuplicateKeyException exception){
+            throw new DuplicateReservationException("이미 예약된 날짜와 시간입니다.");
+        }
     }
 
     public void delete(long id) {
-        Reservation reservation = reservationRepository.findById(id)
-                .orElseThrow(() -> new NotFoundReservationException("예약이 없습니다."));
-        reservationRepository.delete(reservation);
+       int deletedCount = reservationRepository.deleteById(id);
+       if (deletedCount == 0) {
+           throw new NotFoundReservationException("예약이 없습니다.");
+       }
     }
 }
