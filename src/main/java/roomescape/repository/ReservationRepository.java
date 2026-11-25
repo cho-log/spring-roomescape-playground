@@ -35,11 +35,6 @@ public class ReservationRepository {
         return jdbcTemplate.query(sql, reservationRowMapper());
     }
 
-    public Reservation selectById(Long id) {
-        String sql = "SELECT id, name, date, time FROM reservation where id = ?";
-        return jdbcTemplate.queryForObject(sql, reservationRowMapper(), id);
-    }
-
     public Reservation insert(String name, String date, String time) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("name", name);
