@@ -8,12 +8,16 @@ import io.restassured.response.ValidatableResponse;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class ReservationValidationTest {
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Test
     void 올바른_값이면_예약이_생성된다() {
@@ -130,6 +134,16 @@ public class ReservationValidationTest {
         postReservation("브라운", "2023-08-05", "25:00")
                 .statusCode(400)
                 .body("message", is("존재하지 않는 날짜 또는 시간입니다."));
+    }
+
+    @Test
+    void 형식이_달라도_같은_시간이면_중복으로_막힌다() {
+        jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)",
+                "브라운", "2026-11-21", "10:30:00");
+
+        postReservation("핑크", "2026-11-21", "10:30")
+                .statusCode(409)
+                .body("message", is("이미 예약된 시간입니다."));
     }
 
     private ValidatableResponse postReservation(String name, String date, String time) {

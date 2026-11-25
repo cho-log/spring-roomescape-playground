@@ -21,8 +21,8 @@ public class ReservationDao {
     private final RowMapper<Reservation> rowMapper = (resultSet, rowNum) -> new Reservation(
             resultSet.getLong("id"),
             resultSet.getString("name"),
-            LocalDate.parse(resultSet.getString("date")),
-            LocalTime.parse(resultSet.getString("time"))
+            resultSet.getObject("date", LocalDate.class),
+            resultSet.getObject("time", LocalTime.class)
     );
 
     public ReservationDao(NamedParameterJdbcTemplate jdbcTemplate) {
@@ -33,8 +33,8 @@ public class ReservationDao {
         String sql = "INSERT INTO reservation (name, date, time) VALUES (:name, :date, :time)";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("name", reservation.getName())
-                .addValue("date", reservation.getDate().toString())
-                .addValue("time", reservation.getTime().toString());
+                .addValue("date", reservation.getDate())
+                .addValue("time", reservation.getTime());
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         try {
