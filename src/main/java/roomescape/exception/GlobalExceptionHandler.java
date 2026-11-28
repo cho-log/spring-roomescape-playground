@@ -15,13 +15,13 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(ReservationNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleReservationNotFound(ReservationNotFoundException e) {
+    public ResponseEntity<ErrorResponse> handleReservationNotFoundException(ReservationNotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                             .body(new ErrorResponse(e.getMessage(), Map.of()));
+                             .body(new ErrorResponse("예약을 찾을 수 없습니다.", Map.of()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e) {
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         Map<String, String> errors = new HashMap<>();
 
         for (FieldError fieldError : e.getBindingResult().getFieldErrors()) {
@@ -36,5 +36,21 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                              .body(new ErrorResponse("입력값이 올바르지 않습니다.", Map.of()));
+    }
+
+    @ExceptionHandler(PastReservationException.class)
+    public ResponseEntity<ErrorResponse> handlePastReservationException(PastReservationException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                             .body(new ErrorResponse(
+                                     "지난 날짜와 시간으로 예약할 수 없습니다.", Map.of()
+                             ));
+    }
+
+    @ExceptionHandler(DuplicateReservationException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateReservationException(DuplicateReservationException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                             .body(new ErrorResponse(
+                                     "이미 예약된 날짜와 시간입니다", Map.of()
+                             ));
     }
 }
