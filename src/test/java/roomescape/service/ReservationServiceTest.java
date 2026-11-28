@@ -32,7 +32,7 @@ public class ReservationServiceTest {
     void 미래_예약을_생성한다() {
         LocalDate date = LocalDate.now().plusDays(1);
         LocalTime time = LocalTime.now();
-        Reservation expected = new Reservation(1L, "brown", date, time);
+        Reservation expected = Reservation.restore(1L, "brown", date, time);
 
         given(reservationRepository.save("brown", date, time))
                 .willReturn(expected);

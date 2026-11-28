@@ -23,6 +23,8 @@ public class ReservationService {
     }
 
     public Reservation createReservation(String name, LocalDate date, LocalTime time) {
+        Reservation reservation = Reservation.create(name, date, time);
+
         validateReservationDateTime(date, time);
 
         return reservationRepository.save(name, date, time);

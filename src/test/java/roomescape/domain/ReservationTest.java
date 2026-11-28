@@ -18,7 +18,7 @@ public class ReservationTest {
 
     @Test
     void 올바른_예약_정보로_예약을_생성한다() {
-        Reservation reservation = new Reservation(1, "brown", DATE, TIME);
+        Reservation reservation = Reservation.restore(1, "brown", DATE, TIME);
 
         assertThat(reservation.getId()).isEqualTo(1L);
         assertThat(reservation.getName()).isEqualTo("brown");
@@ -28,14 +28,14 @@ public class ReservationTest {
 
     @Test
     void 예약_ID가_양수가_아니면_예외가_발생한다() {
-        assertThatThrownBy(() -> new Reservation(0, "brown", DATE, TIME))
+        assertThatThrownBy(() -> Reservation.restore(0, "brown", DATE, TIME))
                 .isInstanceOf(InvalidReservationException.class)
                 .hasMessage("예약 ID는 양수여야 합니다.");
     }
 
     @Test
     void 이름이_null이면_예외가_발생한다() {
-        assertThatThrownBy(() -> new Reservation(1, null, DATE, TIME))
+        assertThatThrownBy(() -> Reservation.restore(1, null, DATE, TIME))
                 .isInstanceOf(InvalidReservationException.class)
                 .hasMessage("이름은 비어있을 수 없습니다.");
     }
@@ -43,7 +43,7 @@ public class ReservationTest {
     @ParameterizedTest
     @ValueSource(strings = {"", "   "})
     void 이름이_비어있으면_예외가_발생한다(String name) {
-        assertThatThrownBy(() -> new Reservation(1, name, DATE, TIME))
+        assertThatThrownBy(() -> Reservation.restore(1, name, DATE, TIME))
                 .isInstanceOf(InvalidReservationException.class)
                 .hasMessage("이름은 비어있을 수 없습니다.");
     }
@@ -52,7 +52,7 @@ public class ReservationTest {
     void 이름이_255자면_예약을_생성할_수_있다() {
         String name = "a".repeat(255);
 
-        assertThatCode(() -> new Reservation(1, name, DATE, TIME))
+        assertThatCode(() -> Reservation.restore(1, name, DATE, TIME))
                 .doesNotThrowAnyException();
     }
 
@@ -60,21 +60,21 @@ public class ReservationTest {
     void 이름이_255자를_넘으면_예외가_발생한다() {
         String name = "a".repeat(256);
 
-        assertThatThrownBy(() -> new Reservation(1, name, DATE, TIME))
+        assertThatThrownBy(() -> Reservation.restore(1, name, DATE, TIME))
                 .isInstanceOf(InvalidReservationException.class)
                 .hasMessage("이름은 255자 이하여야 합니다.");
     }
 
     @Test
     void 날짜가_null이면_예외가_발생한다() {
-        assertThatThrownBy(() -> new Reservation(1, "brown", null, TIME))
+        assertThatThrownBy(() -> Reservation.restore(1, "brown", null, TIME))
                 .isInstanceOf(InvalidReservationException.class)
                 .hasMessage("날짜는 비어있을 수 없습니다.");
     }
 
     @Test
     void 시간이_null이면_예외가_발생한다() {
-        assertThatThrownBy(() -> new Reservation(1, "brown", DATE, null))
+        assertThatThrownBy(() -> Reservation.restore(1, "brown", DATE, null))
                 .isInstanceOf(InvalidReservationException.class)
                 .hasMessage("시간은 비어있을 수 없습니다.");
     }

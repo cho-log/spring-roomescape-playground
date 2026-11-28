@@ -31,7 +31,7 @@ public class ReservationRepository {
 
         return jdbcTemplate.query(
                 sql,
-                (resultSet, rowNum) -> new Reservation(
+                (resultSet, rowNum) -> Reservation.restore(
                         resultSet.getLong("id"),
                         resultSet.getString("name"),
                         resultSet.getObject("date", LocalDate.class),
@@ -48,7 +48,7 @@ public class ReservationRepository {
 
         try {
             long id = simpleJdbcInsert.executeAndReturnKey(params).longValue();
-            return new Reservation(id, name, date, time);
+            return Reservation.restore(id, name, date, time);
         } catch (DuplicateKeyException e) {
             throw new DuplicateReservationException(date, time);
         }
