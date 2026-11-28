@@ -2,7 +2,8 @@ package roomescape.repository;
 
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import roomescape.domain.Reservation;
@@ -40,17 +41,22 @@ public class ReservationRepository {
         );
     }
 
-    public Reservation save(String name, LocalDate date, LocalTime time) {
-        MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("name", name)
-                .addValue("date", date)
-                .addValue("time", time);
+    public Reservation save(Reservation reservation) {
+        SqlParameterSource params = new BeanPropertySqlParameterSource(reservation);
 
         try {
             long id = simpleJdbcInsert.executeAndReturnKey(params).longValue();
-            return Reservation.restore(id, name, date, time);
+            return Reservation.restore(
+                    id,
+                    reservation.getName(),
+                    reservation.getDate(),
+                    reservation.getTime()
+            );
         } catch (DuplicateKeyException e) {
-            throw new DuplicateReservationException(date, time);
+            throw new DuplicateReservationException(
+                    reservation.getDate(),
+                    reservation.getTime()
+            );
         }
     }
 

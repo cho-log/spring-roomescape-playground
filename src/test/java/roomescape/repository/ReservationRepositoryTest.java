@@ -6,6 +6,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import roomescape.domain.Reservation;
 import roomescape.exception.DuplicateReservationException;
 import roomescape.exception.ReservationNotFoundException;
 
@@ -36,10 +37,10 @@ public class ReservationRepositoryTest {
         LocalDate date = LocalDate.now().plusDays(1);
         LocalTime time = LocalTime.now();
 
-        reservationRepository.save("brown", date, time);
+        reservationRepository.save(Reservation.create("brown", date, time));
 
         assertThatThrownBy(
-                () -> reservationRepository.save("brown2", date, time)
+                () -> reservationRepository.save(Reservation.create("brown2", date, time))
         ).isInstanceOf(DuplicateReservationException.class)
          .hasMessage("이미 예약된 시각: " + LocalDateTime.of(date, time));
     }

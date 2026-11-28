@@ -54,7 +54,7 @@ public class Reservation {
         }
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
@@ -68,9 +68,5 @@ public class Reservation {
 
     public LocalTime getTime() {
         return time;
-    }
-
-    public boolean hasId(long id) {
-        return this.id == id;
     }
 }

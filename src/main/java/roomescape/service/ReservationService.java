@@ -27,7 +27,7 @@ public class ReservationService {
 
         validateReservationDateTime(date, time);
 
-        return reservationRepository.save(name, date, time);
+        return reservationRepository.save(reservation);
     }
 
     private void validateReservationDateTime(LocalDate date, LocalTime time) {
