@@ -2,11 +2,12 @@ package roomescape.service;
 
 import org.springframework.stereotype.Service;
 import roomescape.domain.Reservation;
-import roomescape.dto.ReservationRequest;
 import roomescape.exception.PastReservationException;
 import roomescape.repository.ReservationRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -21,18 +22,14 @@ public class ReservationService {
         return reservationRepository.findAll();
     }
 
-    public Reservation createReservation(ReservationRequest request) {
-        validateReservationDateTime(request);
+    public Reservation createReservation(String name, LocalDate date, LocalTime time) {
+        validateReservationDateTime(date, time);
 
-        return reservationRepository.save(
-                request.name(),
-                request.date(),
-                request.time()
-        );
+        return reservationRepository.save(name, date, time);
     }
 
-    private void validateReservationDateTime(ReservationRequest request) {
-        LocalDateTime reservationDateTime = LocalDateTime.of(request.date(), request.time());
+    private void validateReservationDateTime(LocalDate date, LocalTime time) {
+        LocalDateTime reservationDateTime = LocalDateTime.of(date, time);
         LocalDateTime now = LocalDateTime.now();
 
         if (reservationDateTime.isBefore(now)) {
